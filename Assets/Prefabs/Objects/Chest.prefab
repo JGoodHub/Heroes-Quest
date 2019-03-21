@@ -10,9 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 7103725546401078449}
   - component: {fileID: 9124966218072752588}
-  - component: {fileID: 2273578398701065410}
   - component: {fileID: 8510296844866345082}
-  m_Layer: 0
+  - component: {fileID: 2273578398701065410}
+  - component: {fileID: 3535919221611442607}
+  m_Layer: 10
   m_Name: Chest
   m_TagString: Interactable
   m_Icon: {fileID: 0}
@@ -47,18 +48,6 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 2.21, y: 2.99, z: 3.49}
   m_Center: {x: 0, y: 1.5, z: 0}
---- !u!114 &2273578398701065410
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5696984016829604774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fae885b5de2b6fa47b7ca913b1e6146c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!95 &8510296844866345082
 Animator:
   serializedVersion: 3
@@ -78,6 +67,31 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!114 &2273578398701065410
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5696984016829604774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fae885b5de2b6fa47b7ca913b1e6146c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  linkedQuestComponent: {fileID: 0}
+--- !u!114 &3535919221611442607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5696984016829604774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f2098ce58b822d43a5287465050d1c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &4043733031792005825
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -133,8 +147,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 9500000, guid: 0d26426e6b7166943b602802fb5dab01, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0d26426e6b7166943b602802fb5dab01, type: 3}
 --- !u!4 &4043733031792396355 stripped
 Transform:

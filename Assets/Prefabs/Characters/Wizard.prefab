@@ -86,11 +86,12 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1956667022}
+  - component: {fileID: 3388368873942190582}
   - component: {fileID: 1486704341744579269}
   - component: {fileID: 8387060449011820678}
   - component: {fileID: 5083417526717411451}
-  - component: {fileID: 3388368873942190582}
-  m_Layer: 0
+  - component: {fileID: 124359829295182919}
+  m_Layer: 10
   m_Name: Wizard
   m_TagString: Hero
   m_Icon: {fileID: 0}
@@ -114,6 +115,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 270, z: 0}
+--- !u!136 &3388368873942190582
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5165515426618841987}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  m_Radius: 2.4
+  m_Height: 8.5
+  m_Direction: 1
+  m_Center: {x: 0, y: 2.67, z: -0}
 --- !u!114 &1486704341744579269
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -158,20 +173,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speedInMeters: 10
---- !u!136 &3388368873942190582
-CapsuleCollider:
+  lockedDown: 0
+--- !u!114 &124359829295182919
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5165515426618841987}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
   m_Enabled: 1
-  m_Radius: 2.4
-  m_Height: 8.5
-  m_Direction: 1
-  m_Center: {x: 0, y: 2.67, z: -0}
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f2098ce58b822d43a5287465050d1c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2331551185103152861
 PrefabInstance:
   m_ObjectHideFlags: 0

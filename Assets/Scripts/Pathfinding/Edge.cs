@@ -14,6 +14,8 @@ public class Edge {
 
     //Weight property
     public float weight;
+
+    public Graph parentGraph;
     
     //-----METHODS-----
 
@@ -23,19 +25,13 @@ public class Edge {
         vertices[1] = vertexB;
 
         //Add the edge to the edge collections of each vertex
-        vertexA.AddIncidentEdges(this);
-        vertexB.AddIncidentEdges(this);
+        vertexA.IncidentEdges.Add(this);
+        vertexB.IncidentEdges.Add(this);
 
         //Throw an error if both vertices are the same
         if (vertexA.Equals(vertexB)) {
             Debug.LogError("Edge created where both vertices are the same");
         }
-    }
-
-    //Remove the edge
-    public void DeleteEdge () {
-        vertices[0] = null;
-        vertices[1] = null;
     }
 
     //Get the opposite edge to that passed

@@ -35,6 +35,7 @@ public class CharacterController : MonoBehaviour {
         //Grab the reference to the other scripts on this object
         characterData = GetComponent<CharacterData>();
         characterData.Initialise();
+        characterData.characterController = this;
 
         movementController = GetComponent<MovementController>();
         movementController.Initialise();
@@ -71,7 +72,7 @@ public class CharacterController : MonoBehaviour {
 
         //Check that the hero has enough resources to cast the ability
         foreach (StatChange change in ability.statChanges) {
-            if (characterData.GetResourceOfType(change.Resource) < change.Amount) {
+            if (characterData.GetResourceOfType(change.Resource) < change.Amount * -1) {
                 costRequirementsMet = false;
             }
         }
@@ -92,5 +93,28 @@ public class CharacterController : MonoBehaviour {
         }
     }
 
+    public virtual void Die () {
+        Debug.Log("Oh shit, i'm dead");     
+        StartCoroutine(DieCoroutine());   
+    }
+
+    IEnumerator DieCoroutine () {
+        yield return new WaitForSeconds(2f);
+        PlayerManager.instance.HeroSet.Remove(this);
+        PlayerManager.instance.SelectRandomHero();
+        movementController.lockedDown = true;
+        movementController.GraphObstacle.UnblockCurrentVertex();
+        Unhighlight();
+        GetComponentInChildren<Animator>().SetTrigger("Die");
+        yield return new WaitForSeconds(1f);
+        Destroy(gameObject, 10f);
+        float counter = 0;
+        while (counter < 3.87f || true) {
+            //transform.Translate(-Vector3.down * 20f * Time.deltaTime);
+            counter += Time.deltaTime;
+            yield return null;
+        }
+        
+    }
 
 }

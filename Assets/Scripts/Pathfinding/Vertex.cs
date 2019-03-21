@@ -21,21 +21,19 @@ public class Vertex {
         get {return this.incidentEdges; }
     }
 
+    public Graph parentGraph;
+
     public bool blocked;
 
     //-----METHODS-----
 
-    public Vertex (Vector2Int _coordinates) {
+    public Vertex (Vector2Int _coordinates, Graph _parentGraph) {
         this.graphCoordinates = _coordinates;
+        this.parentGraph = _parentGraph;
     }
 
-    public Vertex (Vector2Int _coordinates, Vector3 _worldPosition) {
-        this.graphCoordinates = _coordinates;
+    public void SetWorldPosition (Vector3 _worldPosition) {
         this.worldPosition = _worldPosition;
-    }
-
-    public void AddIncidentEdges (Edge e) {
-        incidentEdges.Add(e);
     }
 
     public HashSet<Vertex> GetNeighbouringVertices () {

@@ -24,6 +24,9 @@ public class UIManager : MonoBehaviour {
     //-----VARIABLES-----
 
 	private Camera mainCamera;
+
+	[Header("UI Canvas Root")]
+	public Canvas uiRootCanvas;
     
 	[Header("Selected Character UI Elements")]
 	public Image healthBarFill;
@@ -76,6 +79,14 @@ public class UIManager : MonoBehaviour {
         //TODO
     }
 
+	public void UnhideUI () {
+		uiRootCanvas.enabled = true;
+	}
+
+	public void HideUI () {
+		uiRootCanvas.enabled = false;
+	}
+
 	//Update the health, mana and action points to that of the selected hero
 	public void UpdateHeroStatusBar () {
 		//Get the current selected hero
@@ -91,6 +102,9 @@ public class UIManager : MonoBehaviour {
 
 		//Update the action points
 		actionPointsFill.fillAmount = (float) heroData.GetResourceOfType(ResourceType.ACTIONPOINTS) / heroData.maxActionPoints;
+
+		//Update the experience bar
+		experienceBarFill.fillAmount = (float) heroData.Experience / heroData.LevelToExperience(heroData.Level + 1);
 	}
 
 	//Unhide and update the enemies status bar
@@ -227,7 +241,7 @@ public class UIManager : MonoBehaviour {
 		QuestComponent questComp = QuestManager.instance.ActiveQuest;
 		do {
 			if (questComp.dominoQuest == null) {
-				questExperienceText.text = "XP: " + questComp.experienceReward;
+				questExperienceText.text = "Reward: " + questComp.experienceReward + " XP";
 				return;
 			} else {
 				questComp = questComp.dominoQuest;

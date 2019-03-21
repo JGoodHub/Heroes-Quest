@@ -80,5 +80,7 @@
         "typescript",
         "typescriptreact",
         "yml"
-    ]
+    ],
+    "workbench.editor.enablePreview": false,
+    "workbench.editor.enablePreviewFromQuickOpen": false
 }

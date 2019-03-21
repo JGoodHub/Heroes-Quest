@@ -23,6 +23,7 @@ ModelImporter:
     100034: Tank
     100036: Thigh_L
     100038: Thigh_R
+    100040: Cylinder
     400000: Arm_L
     400002: Arm_R
     400004: Armature
@@ -43,12 +44,18 @@ ModelImporter:
     400034: Tank
     400036: Thigh_L
     400038: Thigh_R
+    400040: Cylinder
     2100000: Dark_Cloth
     2100002: Light_Cloth
     2100004: Legs
     2100006: Skin
     2100008: Leather
+    2100010: Metal
+    2100012: Wood
+    2300000: Cylinder
+    3300000: Cylinder
     4300000: Tank
+    4300002: Cylinder
     7400000: Default Take
     7400002: ArmatureAction_001
     9500000: //RootNode

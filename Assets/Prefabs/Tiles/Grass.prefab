@@ -208,6 +208,11 @@ MonoBehaviour:
   gridB: 1
   gridC: 1
   gridD: 1
+  tileDisplacements: []
   startNodeIndex: 0
   endNodeIndex: 0
   drawGizmos: 0
+  drawConnectorNodes: 0
+  drawWalkableToggles: 1
+  drawTileDirection: 0
+  drawTileBounds: 0

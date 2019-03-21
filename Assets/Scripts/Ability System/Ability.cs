@@ -56,12 +56,11 @@ public class Ability {
 
     public void StartAbility (CharacterController source, CharacterController target) {
         //Turn the characters to face each other
-        source.transform.forward = target.transform.position - source.transform.position;
+        source.transform.forward = new Vector3(target.transform.position.x, source.transform.position.y, target.transform.position.z) - source.transform.position;
         target.transform.forward = source.transform.forward * -1;
 
         //Apply the cost of the ability to the characters stats
         foreach (StatChange change in statChanges) {
-            Debug.Log (change.Resource + ", " + change.Amount);
             source.CharacterData.ApplyChangeToData(change);
         }
 

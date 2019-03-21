@@ -23,9 +23,12 @@ public class CharacterData : MonoBehaviour {
     private int actionPoints;
 
     //Characters experience
-    private int currentLevel;
-    private int currentExperience;
-    private int nextLevelExperienceCap;
+    private int level = 0;
+    public int Level { get => level; }
+    private int experience = 0;
+    public int Experience { get => experience; }
+
+    public CharacterController characterController;
 
     //-----METHODS-----
 
@@ -46,7 +49,7 @@ public class CharacterData : MonoBehaviour {
             case ResourceType.ACTIONPOINTS:
                 return actionPoints;
             case ResourceType.EXPERIENCE:
-                return currentExperience;
+                return experience;
             default:
                 Debug.LogError("Attempting to get a resource that doesn't exist");
                 return 0;
@@ -59,7 +62,7 @@ public class CharacterData : MonoBehaviour {
             case ResourceType.HEALTH:
                 health = (int) Mathf.Clamp(health + change.Amount, 0, maxHealth);
                 if (health <= 0) {
-                    Die();
+                    TriggerCharacterDeath();
                 }
                 break;
             case ResourceType.MANA:
@@ -69,7 +72,11 @@ public class CharacterData : MonoBehaviour {
                 actionPoints = (int) Mathf.Clamp(actionPoints + change.Amount, 0, maxActionPoints);                
                 break;
             case ResourceType.EXPERIENCE:
-
+                experience += change.Amount;
+                while (experience >= LevelToExperience(level + 1)) {
+                    experience -= LevelToExperience(level);
+                    level++;                    
+                }
                 break;
             default:
                 Debug.LogError("Attempting to change a resource that doesn't exist");
@@ -81,9 +88,8 @@ public class CharacterData : MonoBehaviour {
     }
 
     //Destroy the character object when their health reaches zero
-    public void Die () {
-        Debug.Log("Oh shit im dead");
-        Destroy (gameObject, 2f);
+    public void TriggerCharacterDeath () {
+        characterController.Die();
     } 
 
     public int LevelToExperience (int level) {
@@ -91,6 +97,8 @@ public class CharacterData : MonoBehaviour {
     }
 
 }
+
+//-----RELATED DATA STRUCTURES-----
 
 public enum ResourceType {HEALTH, MANA, ACTIONPOINTS, EXPERIENCE};
 

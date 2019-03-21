@@ -90,6 +90,11 @@ public class VFXEffect : ScriptableObject {
             partSys.Stop();
         }
 
+        //If the projectile has particle systems, stop them
+        foreach (Light light in projectileObject.GetComponentsInChildren<Light>()) {
+            light.enabled = false;
+        }
+
         //Wait for all the particles to disperse
         Destroy(projectileObject, 5f);
         AbilityManager.instance.StartExternalCoroutine(OnFinish());

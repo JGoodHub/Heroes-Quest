@@ -3,21 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(GraphObstacle))]
 public class MovementController : MonoBehaviour {
 
     //-----VARIABLES-----
 
-    //The current vertex the character is on
-    private Vertex currentVertex;
-    public Vertex CurrentVertex { get => currentVertex; }
-
     //Variables for moving the character
     public float speedInMeters;
     private float yBounce = 5.5f;
+    private float yFloor = 0f;
     private IEnumerator moveCharacterCoroutine;    
 
     //Is the character currently moving or able to move at all
-    private bool lockedDown = false;
+    public bool lockedDown = false;
     private bool currentlyMoving;
     public bool CurrentlyMoving { get => currentlyMoving; }
 
@@ -26,25 +24,16 @@ public class MovementController : MonoBehaviour {
 
     //Reference to the character controller
     private CharacterController characterController;
+    private GraphObstacle graphObstacle;
+    public GraphObstacle GraphObstacle { get => graphObstacle; }
 
     //-----METHODS-----
 
     //Setup Method
     public virtual void Initialise () {
-        currentVertex = PathfindingManager.instance.Graph.GetClosestVertexToCoordinates(PathfindingManager.TranslateWorldSpaceToGraphCoordinates(transform.position));
-        currentVertex.blocked = true;     
-
         characterController = GetComponent<CharacterController>();
-    }
+        graphObstacle = GetComponent<GraphObstacle>();
 
-    //Lock the character to prevent it from moving
-    public void LockCharacter () {
-        lockedDown = true;
-    }
-
-    //Unlock the character to allow it to move
-    public void UnlockCharacter () {
-        lockedDown = false;
     }
 
     //Resets the distance moved counter
@@ -53,7 +42,7 @@ public class MovementController : MonoBehaviour {
     }
 
     //Checks if the character can move this turn
-    public bool CanCharacterMove (float distance) {
+    public bool CanMoveThatDistance (float distance) {
         return distance <= speedInMeters - distanceMovedThisTurn;
     }
 
@@ -61,7 +50,26 @@ public class MovementController : MonoBehaviour {
     public int APCostOfMovement (Path path) {
         float distancePerAP = speedInMeters / characterController.CharacterData.maxActionPoints;
         return Mathf.CeilToInt(path.GetPathLength() / distancePerAP);
-    }    
+    } 
+
+    public Path CheckForEncounterAndTrimPath (Path path) {
+        HashSet<Vertex> encounterTriggerVertices = EnemyAIManager.instance.GetAllEncounterTriggerVertices();
+        int pathPtr = 0;
+        bool matchFound = false;
+        while (pathPtr < path.Vertices.Count && matchFound == false) {
+            if (encounterTriggerVertices.Contains(path.Vertices[pathPtr])) {
+                matchFound = true;
+            } else {
+                pathPtr++;
+            }           
+        }
+
+        if (matchFound) {
+            path.TrimPath(path.Vertices.Count - (pathPtr + 1));
+        } 
+        
+        return path;
+    } 
 
     //Check if the character is able to move and call the corresponding coroutine, overriding any current path
     public void MoveCharacter (Path path, float delay) {
@@ -73,6 +81,7 @@ public class MovementController : MonoBehaviour {
 
             //Start the character moving on their new path
             moveCharacterCoroutine = MoveCharacterCoroutine(path, delay);
+            characterController.CharacterData.ApplyChangeToData(new StatChange(ResourceType.ACTIONPOINTS, characterController.MovementController.APCostOfMovement(path) * -1));
             StartCoroutine(moveCharacterCoroutine);
         }
     }
@@ -90,7 +99,7 @@ public class MovementController : MonoBehaviour {
         UIManager.instance.DisableUI();
 
         //Unblock the starting vertex
-        currentVertex.blocked = false;
+        graphObstacle.UnblockCurrentVertex();
 
         //Wait for the specified delay
         yield return new WaitForSeconds(delay);
@@ -108,13 +117,20 @@ public class MovementController : MonoBehaviour {
                 transform.position = Vector3.MoveTowards(transform.position, nextVertexWorldPosition, 20 * Time.deltaTime);
 
                 //Stage Two - Vertical movement
-                float distanceToLastVertex = Vector3.Distance(transform.position, path.Vertices[pathPtr - 1].WorldPosition);
-                float distanceToNextVertex = Vector3.Distance(transform.position, nextVertexWorldPosition);
-                transform.position = new Vector3(transform.position.x, Mathf.PingPong(distanceToLastVertex / (distanceToLastVertex + distanceToNextVertex), 0.5f) * yBounce, transform.position.z);
+                if (Mathf.Abs(nextVertexWorldPosition.y - path.Vertices[pathPtr - 1].WorldPosition.y) > 0.1f) {
+
+                } else {
+                    float distanceToLastVertex = Vector3.Distance(transform.position, path.Vertices[pathPtr - 1].WorldPosition);
+                    float distanceToNextVertex = Vector3.Distance(transform.position, nextVertexWorldPosition);
+                    transform.position = new Vector3(transform.position.x, (Mathf.PingPong(distanceToLastVertex / (distanceToLastVertex + distanceToNextVertex), 0.5f) * yBounce) + yFloor, transform.position.z);
+                }
             } else {
                 //set the character current vertex to the last one it stepped on
-                currentVertex = path.Vertices[pathPtr];
-                pathPtr++;                
+                graphObstacle.SetCurrentVertex(path.Vertices[pathPtr]);                
+                pathPtr++;       
+                if (pathPtr < path.Vertices.Count) {
+                    yFloor = path.Vertices[pathPtr].WorldPosition.y;       
+                } 
             }
             
             yield return null;
@@ -122,9 +138,17 @@ public class MovementController : MonoBehaviour {
 
         //Clear flags and re-active buttons
         currentlyMoving = false;
-        currentVertex.blocked = true;
+        graphObstacle.BlockCurrentVertex();
         UIManager.instance.EnableUI();
         distanceMovedThisTurn += path.GetPathLength();
+        PlayerManager.instance.ActionRunning = false;
+
+        //Check if the character is in enemy territory and trigger their turn if so
+        if (EnemyAIManager.instance.GetAllEncounterTriggerVertices().Contains(graphObstacle.CurrentVertex)) {
+            EnemyAIManager.instance.GetSpecificEncounter(graphObstacle.CurrentVertex).encounterActive = true;
+            
+            GameManager.instance.EndPlayersTurn();
+        }
     }
 
     public void LookAtVector (Vector3 lookAtTarget) {

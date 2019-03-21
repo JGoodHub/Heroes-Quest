@@ -28,14 +28,16 @@ public class AbilityBook : MonoBehaviour {
     //Create all the abilities and store them under their ids
     public void Initialise () {
 		#region Slash Ability
+			//-----EFFECTS-----
 			VFXEffect slashBloodHit = new VFXEffect(VFXEffect.EffectType.PARTICLE_SYSTEM, "Slash", 1f, null, null);
 			VFXEffect slashAnim = new VFXEffect(
 				VFXEffect.EffectType.ANIMATION, 
-				"Swing Sword Diagonally", 
+				"Swing Sword", 
 				0.5f, 
 				new Ability.Effect(Ability.EffectType.DAMAGE, -10), 
 				slashBloodHit);
 			
+			//-----ABILITY-----
 			Ability slashAbility = new Ability (
 				"Slash",
 				"A powerful strike with the sword should do it",
@@ -47,6 +49,7 @@ public class AbilityBook : MonoBehaviour {
 		#endregion
 
 		#region Medium Fireball Ability
+			//-----EFFECTS-----
 			VFXEffect mediumExplosion = new VFXEffect(VFXEffect.EffectType.PARTICLE_SYSTEM, "Medium Explosion", 1.5f, null, null);
 			VFXEffect fireBall = new VFXEffect(
 				VFXEffect.EffectType.PROJECTILE,
@@ -57,10 +60,11 @@ public class AbilityBook : MonoBehaviour {
 			fireBall.SetStartOffset(new Vector3(0.5f, 4.2f, 3f));
 			VFXEffect throwMagicAnim = new VFXEffect(VFXEffect.EffectType.ANIMATION, "Cast Projectile", 0.6f, null, fireBall);
 			
+			//-----ABILITY-----
 			Ability mediumFireballAbility = new Ability (
 				"Medium Fireball",
 				"The power of the sun in my hands",
-				new Ability.TargetingMode(Ability.TargetType.SINGLE, 7f, 1.5f),
+				new Ability.TargetingMode(Ability.TargetType.SINGLE, 9f, 1.5f),
 				new StatChange[]{new StatChange(ResourceType.MANA, -5), new StatChange(ResourceType.ACTIONPOINTS, -2)},
 				throwMagicAnim);
 
@@ -68,13 +72,15 @@ public class AbilityBook : MonoBehaviour {
 		#endregion
 
 		#region Bash Ability
+			//-----EFFECTS-----
 			VFXEffect bashAnim = new VFXEffect(
 				VFXEffect.EffectType.ANIMATION, 
 				"Swing Fist", 
 				0.5f, 
-				new Ability.Effect(Ability.EffectType.DAMAGE, -10), 
+				new Ability.Effect(Ability.EffectType.DAMAGE, -5), 
 				slashBloodHit);
 			
+			//-----ABILITY-----
 			Ability bashAbility = new Ability (
 				"Bash",
 				"Who needs a weapon to kill",

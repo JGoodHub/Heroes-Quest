@@ -23,12 +23,20 @@ public class TileData : MonoBehaviour {
     */
     private bool[] connectorNodes = new bool[4];
 
-    [Header("Grid Space Walkable Toggles")]
+    [Header("Grid Space Walkable Toggles and Displacements")]
     //Walkable grid space toggles
     public bool gridA;
     public bool gridB;
     public bool gridC;
     public bool gridD;
+    
+    public TileSpaceDisplacement[] tileDisplacements = new TileSpaceDisplacement[0];
+    [Serializable]
+    public struct TileSpaceDisplacement {
+        public Char spaceID;
+        public float verticalDisplacement;
+        public bool interGraphVertex;
+    }
     
     //Aid in calculating the direction a tile should be rotated
     [Header("Direction of Tile")]
@@ -63,7 +71,7 @@ public class TileData : MonoBehaviour {
 
     //-----METHODS-----
     //Initialises the tile by storing its coordinates in the map grid and converting the node bools to an array
-    public void Init (Vector2 gridPos) {
+    public void Initialise (Vector2 gridPos) {
         gridX = (int) gridPos.x;
         gridY = (int) gridPos.y;
 
@@ -76,18 +84,18 @@ public class TileData : MonoBehaviour {
     }
 
     private void SetupColliders () {
-        for (int i = 0, c = 'A'; i < 4; i++, c++) {
-            if (IsGridSpaceWalkable((Char) c) == true) {
+        for (int i = 0, id = 'A'; i < 4; i++, id++) {
+            if (IsWalkableSpaceActive((Char) id) == true) {
                 BoxCollider gridSpaceCollider = gameObject.AddComponent(typeof(BoxCollider)) as BoxCollider;
-                gridSpaceCollider.center = GetWorldPositionOfWalkableGridSpace((Char) c) - transform.position;
-                gridSpaceCollider.size = new Vector3(5, 1, 5);
+                gridSpaceCollider.center = GetWorldPositionOfWalkableSpace((Char) id) - transform.position + new Vector3(0, GetWalkableSpaceDisplacement((Char) id), 0);
+                gridSpaceCollider.size = new Vector3(5, 0.5f, 5);
             }
         }
     }
     
     //Does the tile have a node in a given direction
     public bool HasConnectorNodeInDirection (int direction) {
-        return connectorNodes[direction] == true;        
+        return connectorNodes[direction] == true;
     }
 
     //Number of nodes this tile has
@@ -174,19 +182,41 @@ public class TileData : MonoBehaviour {
     }    
 
     //Checks whether a given grid space is walkable
-    public bool IsGridSpaceWalkable (Char spaceID) {
+    public bool IsWalkableSpaceActive (Char spaceID) {
         switch (spaceID) {
             case 'A': return gridA;
             case 'B': return gridB;
             case 'C': return gridC;
             case 'D': return gridD;
+            default : return false;
         }
+    }
+
+    public bool IsWalkableSpaceInterGraphConnecting (Char spaceID) {
+        foreach (TileSpaceDisplacement tileDisplacement in tileDisplacements) {
+            if (tileDisplacement.spaceID == spaceID && tileDisplacement.interGraphVertex == true) {
+                return true;
+            }
+        }
+
         return false;
     }
 
+
+    private float GetWalkableSpaceDisplacement (Char spaceID) {
+        float displacementTotal = 0f;
+        foreach (TileSpaceDisplacement tileDisplacement in tileDisplacements) {
+            if (tileDisplacement.spaceID == spaceID) {
+                displacementTotal += tileDisplacement.verticalDisplacement;
+            }
+        }
+
+        return displacementTotal;
+    }    
+
     //Returns the world position of a given grid space
     //Mostly used for debugging and gizmos at the moment
-    public Vector3 GetWorldPositionOfWalkableGridSpace (Char spaceID) {
+    public Vector3 GetWorldPositionOfWalkableSpace (Char spaceID) {
         switch (spaceID) {
             case 'A':
                 if (gridA == true) {
@@ -213,16 +243,34 @@ public class TileData : MonoBehaviour {
         return Vector3.zero;        
     }
 
-    public int[,] ConvertGridSpaceBoolsTo2DArray () {
+    //Convert the walkable space toggles into a 2D array for easier iteration
+    public int[,] ConvertWalkableSpacesTo2DDisplacementArray () {
         int[,] gridSpaceMatrix = new int[2, 2];
-        gridSpaceMatrix[0, 0] = gridA ? 1 : 0;
-        gridSpaceMatrix[1, 0] = gridB ? 1 : 0;
-        gridSpaceMatrix[0, 1] = gridC ? 1 : 0;
-        gridSpaceMatrix[1, 1] = gridD ? 1 : 0;
-        
+        Char correspondingID = 'A';
+
+        for (int z = 0; z <= 1; z++) {
+            for (int x = 0; x <= 1; x++) {
+                //Debug.Log("Type: " + gameObject.name + "Space " + correspondingID +": " + IsWalkableSpaceActive(correspondingID));
+                //Debug.Log(correspondingID + ", " + IsWalkableSpaceActive(correspondingID));
+                //Debug.Log(x + ", " + z + ": " + correspondingID);
+                if (IsWalkableSpaceActive(correspondingID)) {
+                    if (IsWalkableSpaceInterGraphConnecting(correspondingID)) {
+                        gridSpaceMatrix[x, z] = 10;
+                    }  else {
+                        gridSpaceMatrix[x, z] = Mathf.RoundToInt(GetWalkableSpaceDisplacement(correspondingID));
+                    }
+                    //gridSpaceMatrix[x, z] = 1;
+                } else {
+                    gridSpaceMatrix[x, z] = -1;
+                }
+                
+                correspondingID++;
+            }
+        }
+
         //Rotate the grid space array by 90 degrees at a time
         for (int matrixRotation = 0; matrixRotation < absoluteRotation; matrixRotation += 90) {
-            int temp = gridSpaceMatrix[0,0];
+            int temp = gridSpaceMatrix[0, 0];
             gridSpaceMatrix[0, 0] = gridSpaceMatrix[0, 1];
             gridSpaceMatrix[0, 1] = gridSpaceMatrix[1, 1];
             gridSpaceMatrix[1, 1] = gridSpaceMatrix[1, 0];
@@ -236,35 +284,49 @@ public class TileData : MonoBehaviour {
 
     [Header("Gizmo Toggles")]
     public bool drawGizmos;
+    public bool drawConnectorNodes;
+    public bool drawWalkableToggles;
+    public bool drawTileDirection;
+    public bool drawTileBounds;
     void OnDrawGizmos () {
         if (drawGizmos) {
-            //Draw spheres at each node position
-            Gizmos.color = Color.cyan;
-            connectorNodes[0] = forwardNodeEnabled;
-            connectorNodes[1] = rightNodeEnabled;
-            connectorNodes[2] = backwardNodeEnabled;
-            connectorNodes[3] = leftNodeEnabled;
-            foreach(Vector3 nodePosition in GetWorldPositionOfAllConnectorNodes()) {
-                Gizmos.DrawSphere(nodePosition, 0.5f);
-            }
-
-            //Draw cubes on each grid space that's marked as walkable
-            Gizmos.color = Color.green;
-            for (Char id = 'A'; id != 'E'; id++) {
-                if (IsGridSpaceWalkable(id)) {
-                    Gizmos.DrawCube(GetWorldPositionOfWalkableGridSpace(id), Vector3.one);
+            if (drawConnectorNodes) {
+                //Draw spheres at each node position
+                Gizmos.color = Color.cyan;
+                connectorNodes[0] = forwardNodeEnabled;
+                connectorNodes[1] = rightNodeEnabled;
+                connectorNodes[2] = backwardNodeEnabled;
+                connectorNodes[3] = leftNodeEnabled;
+                foreach(Vector3 nodePosition in GetWorldPositionOfAllConnectorNodes()) {
+                    Gizmos.DrawSphere(nodePosition, 0.5f);
                 }
             }
 
+            if (drawWalkableToggles) {
+                //Draw cubes on each grid space that's marked as walkable
+                Gizmos.color = Color.green;
+                for (Char id = 'A'; id != 'E'; id++) {
+                    if (IsWalkableSpaceActive(id)) {
+                        Gizmos.DrawCube(GetWorldPositionOfWalkableSpace(id) + new Vector3(0, GetWalkableSpaceDisplacement(id), 0), Vector3.one);
+                    }
+                }
+            }
 
-            //Draw a line between the start and end node
-            Gizmos.color = Color.red;
-            GizmosDrawArrow(GetWorldPositionOfConnectorNode(startNodeIndex), GetWorldPositionOfConnectorNode(endNodeIndex));   
+            if (drawTileDirection) {
+                //Draw a line between the start and end node
+                Gizmos.color = Color.red;
+                GizmosDrawArrowedLine(GetWorldPositionOfConnectorNode(startNodeIndex), GetWorldPositionOfConnectorNode(endNodeIndex));   
+            }
+
+            if (drawTileBounds) {
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireCube(transform.position, new Vector3(10, 5, 10));
+            }
         }
     }
 
     //Draw an arrowed line between two vectors
-    private void GizmosDrawArrow (Vector3 start, Vector3 end) {
+    private void GizmosDrawArrowedLine (Vector3 start, Vector3 end) {
         Vector3 reverseDirection = (start - end).normalized;
         Vector3 tangentDirection = Quaternion.AngleAxis(90, Vector3.up) * reverseDirection;
         Vector3 midPoint = (start + end) / 2;

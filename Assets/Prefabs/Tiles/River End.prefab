@@ -52,9 +52,14 @@ MonoBehaviour:
   gridB: 0
   gridC: 0
   gridD: 0
+  tileDisplacements: []
   startNodeIndex: 0
   endNodeIndex: 0
-  drawGizmos: 0
+  drawGizmos: 1
+  drawConnectorNodes: 1
+  drawWalkableToggles: 0
+  drawTileDirection: 1
+  drawTileBounds: 0
 --- !u!1001 &6430793522976754539
 PrefabInstance:
   m_ObjectHideFlags: 0

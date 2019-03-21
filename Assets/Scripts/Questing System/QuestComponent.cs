@@ -4,15 +4,20 @@ using UnityEngine;
 
 public class QuestComponent : MonoBehaviour {
 
+    //-----ENUMS-----
+
+    public enum QuestType {INTERACT, ENCOUNTER};
+
     //-----VARIABLES-----
 
     public string title;
     [TextArea]
     public string description;
 
-    public QuestObjective objective;
+    public QuestType questType;
+
     public QuestComponent dominoQuest;
-    public string experienceReward;
+    public int experienceReward;
 
     //-----METHODS-----
 
@@ -22,6 +27,17 @@ public class QuestComponent : MonoBehaviour {
     }
 
     public void CompleteQuest () {
+        if (dominoQuest == null) {
+            if (questType == QuestType.INTERACT) {
+                PlayerManager.instance.SelectedHero.CharacterData.ApplyChangeToData(new StatChange(ResourceType.EXPERIENCE, experienceReward));
+            } else if (questType == QuestType.ENCOUNTER) {
+                foreach (CharacterController heroController in PlayerManager.instance.HeroSet) {
+                    heroController.CharacterData.ApplyChangeToData(new StatChange(ResourceType.EXPERIENCE, experienceReward / PlayerManager.instance.HeroSet.Count));
+                }
+            }
+        } else {
+            dominoQuest.StartQuest();
+        }
 
     }
 
