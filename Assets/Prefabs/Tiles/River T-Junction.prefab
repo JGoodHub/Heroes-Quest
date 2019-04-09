@@ -53,8 +53,9 @@ MonoBehaviour:
   gridC: 0
   gridD: 0
   tileDisplacements: []
-  startNodeIndex: 1
-  endNodeIndex: 3
+  startNodeIndex: 0
+  endNodeIndex: 0
+  tileInstanceID: 0
   drawGizmos: 1
   drawConnectorNodes: 1
   drawWalkableToggles: 0

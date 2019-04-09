@@ -6,12 +6,10 @@ public interface IInteractable {
 
     //-----PROPERTIES-----
 
-    GraphObstacle GraphObstacleComponent {get; set;}
 
-    //
+    //-----METHODS-----
 
     void Initialise ();
     void TriggerInteraction ();
-    void Reset ();
     
 }

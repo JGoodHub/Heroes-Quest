@@ -19,7 +19,6 @@ public class GameManager : MonoBehaviour {
 	//-----VARIABLES-----
 
 	public GameObject runtimeObjectsPool;
-	public bool mapEditorModeEnabled;
 
     //-----METHODS-----
 
@@ -30,10 +29,11 @@ public class GameManager : MonoBehaviour {
 		UIManager.instance.Initialise();
 		LightingManager.instance.Initialise();
 
-		if (mapEditorModeEnabled) {
-			TileManager.instance.EnableLiveUpdateMode();
-			UIManager.instance.HideUI();
+		if (TileManager.instance.mapEditorModeEnabled) {
+			TileManager.instance.EnableMapEditorMode();
+			UIManager.instance.SetToTileEditorMode();
 		} else {
+			UIManager.instance.SetToGameMode();
 			PathManager.instance.Initialise();
 			AbilityBook.instance.Initialise();		
 			PlayerManager.instance.Initialise();		
@@ -41,21 +41,28 @@ public class GameManager : MonoBehaviour {
 			QuestManager.instance.Initialise();				
 			InteractablesManager.instance.Initialise();
 
-			//Start the players turn immediately
+            //Start the players turn immediately
 			StartPlayersTurn();
 		}		
     }
 
 	//Start the players turn
 	public void StartPlayersTurn () {
-		UIManager.instance.EnableUI();
+        UIManager.instance.EnableGameUI();
+
+        if (EnemyAIManager.instance.combatActive == false) {
+            UIManager.instance.DisableEndTurnButton();
+        }
+
+		      
 		PlayerManager.instance.BeginTurn();
 	}
 
 	//End the players turn and start the enemies
 	public void EndPlayersTurn () {
-		UIManager.instance.DisableUI();
+		UIManager.instance.DisableGameUI();
 		PlayerManager.instance.EndTurn();
+
 		StartEnemyTurn();
 	}
 

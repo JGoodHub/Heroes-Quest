@@ -28,7 +28,9 @@ public class CharacterData : MonoBehaviour {
     private int experience = 0;
     public int Experience { get => experience; }
 
+    [HideInInspector]
     public CharacterController characterController;
+    public CharacterController CharacterController { set => characterController = value; }
 
     //-----METHODS-----
 

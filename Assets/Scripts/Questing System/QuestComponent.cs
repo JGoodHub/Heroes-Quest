@@ -2,44 +2,52 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class QuestComponent : MonoBehaviour {
+public class QuestComponent {
 
     //-----ENUMS-----
 
-    public enum QuestType {INTERACT, ENCOUNTER};
+    public enum QuestType {INTERACT, ENCOUNTER, HAND_IN};
 
     //-----VARIABLES-----
 
     public string title;
-    [TextArea]
     public string description;
-
+    public string interactionText;
+    public int xpReward;
     public QuestType questType;
-
-    public QuestComponent dominoQuest;
-    public int experienceReward;
+    
+    public HashSet<QuestComponent> followUpQuests = new HashSet<QuestComponent>();    
 
     //-----METHODS-----
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="_title"></param>
+    /// <param name="_description"></param>
+    /// <param name="_xpReward"></param>
+    /// <param name="_questType"></param>
+    public QuestComponent (string _title, string _description, int _xpReward, QuestType _questType) {
+        title = _title;
+        description = _description;
+        xpReward = _xpReward;
+        questType = _questType;
+    }
+
+
+    /// <summary>
+    /// 
+    /// </summary>
     public void StartQuest () {
-        QuestManager.instance.SetActiveQuest(this);
+        QuestManager.instance.activeQuest = this;
         UIManager.instance.UpdateQuestStatus();
     }
-
+    
     public void CompleteQuest () {
-        if (dominoQuest == null) {
-            if (questType == QuestType.INTERACT) {
-                PlayerManager.instance.SelectedHero.CharacterData.ApplyChangeToData(new StatChange(ResourceType.EXPERIENCE, experienceReward));
-            } else if (questType == QuestType.ENCOUNTER) {
-                foreach (CharacterController heroController in PlayerManager.instance.HeroSet) {
-                    heroController.CharacterData.ApplyChangeToData(new StatChange(ResourceType.EXPERIENCE, experienceReward / PlayerManager.instance.HeroSet.Count));
-                }
-            }
-        } else {
-            dominoQuest.StartQuest();
+        foreach (CharacterController heroController in PlayerManager.instance.HeroSet) {
+            heroController.CharacterData.ApplyChangeToData(new StatChange(ResourceType.EXPERIENCE, xpReward / PlayerManager.instance.HeroSet.Count));
         }
-
     }
-
-
+    
 }
+ 

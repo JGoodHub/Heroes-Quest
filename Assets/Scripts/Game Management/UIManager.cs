@@ -19,7 +19,7 @@ public class UIManager : MonoBehaviour {
 
     //-----ENUMS-----
 
-    public enum CursorType {DEFAULT, MOVE, INTERACT, ATTACK, STOP};
+    public enum CursorType {DEFAULT, MOVE, INTERACT, SPEACH};
 
     //-----VARIABLES-----
 
@@ -37,7 +37,7 @@ public class UIManager : MonoBehaviour {
 	public Image experienceBarFill;
 
 	[Header("Enemy Status Bar UI Elements")]
-	public GameObject enemyBarObject;
+	public GameObject enemyBarWindow;
 	public Text enemyName;
 	public Image enemyHealthBarFill;
 	public Text enemyHealthBarText;
@@ -45,17 +45,11 @@ public class UIManager : MonoBehaviour {
 	[Header("Turn Management UI Elements")]
 	public Button endTurnButton;
 
-	[Header("Ability Button UI Elements")]
-	public Button abilityOneButton;
-	public Button abilityTwoButton;
-	public Button abilityThreeButton;
-	public Button abilityFourButton;
+    [Header("Action Button UI Elements")]
+    public Button[] actionButtons;
 
-	[Header("Action Button UI Elements")]
-	public Button moveButton;
-	public Button interactButton;
-	public Button attackButton;
-	public Button stopButton;
+    [Header("Ability Button UI Elements")]
+	public Button[] abilityButtons;
 
 	[Header("Action points Cost Text")]
 	public Text actionPointsText;
@@ -64,30 +58,67 @@ public class UIManager : MonoBehaviour {
 	public Text questTitleText;
 	public Text questDescriptionText;
 	public Text questExperienceText;
+    public GameObject speechInteractionWindow;
+    public Text speechInteractionText;
+
+	[Header("Tile Editor UI Elements")]
+	public GameObject tileEditorWindow;
 
     //-----METHODS-----
 
 	//Setup Method
+    /// <summary>
+    /// 
+    /// </summary>
 	public void Initialise () {
 		mainCamera = Camera.main;
 		HideEnemyStatusBar();
-		HideAPCostText();
+		HideFeetCostText();
+        HideSpeechChat();
 	}
 
 	//Change the users cursor to the type parsed
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="type"></param>
     public void ChangeCursorTo (CursorType type) {
         //TODO
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
 	public void UnhideUI () {
 		uiRootCanvas.enabled = true;
 	}
 
+    /// <summary>
+    /// 
+    /// </summary>
 	public void HideUI () {
 		uiRootCanvas.enabled = false;
 	}
 
+    /// <summary>
+    /// 
+    /// </summary>
+	public void SetToTileEditorMode () {
+		DisableGameUI();
+		tileEditorWindow.SetActive(true);
+	}
+
+    /// <summary>
+    /// 
+    /// </summary>
+	public void SetToGameMode () {
+		tileEditorWindow.SetActive(false);
+	}
+
 	//Update the health, mana and action points to that of the selected hero
+    /// <summary>
+    /// 
+    /// </summary>
 	public void UpdateHeroStatusBar () {
 		//Get the current selected hero
 		CharacterData heroData = PlayerManager.instance.SelectedHero.CharacterData;
@@ -108,12 +139,16 @@ public class UIManager : MonoBehaviour {
 	}
 
 	//Unhide and update the enemies status bar
-	public void ShowStatusBarForEnemy (CharacterController enemyToDisplay) {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="enemyController"></param>
+	public void ShowStatusBarForEnemy (CharacterController enemyController) {
 		//Get the enemy to display
-		CharacterData enemyData = enemyToDisplay.CharacterData;
+		CharacterData enemyData = enemyController.CharacterData;
 
 		//Active the UI element
-		enemyBarObject.SetActive(true);
+		enemyBarWindow.SetActive(true);
 
 		//Update to the new enemies data
 		enemyName.text = enemyData.characterName;
@@ -122,131 +157,164 @@ public class UIManager : MonoBehaviour {
 	}
 
 	//Hide the enemies status bar
+    /// <summary>
+    /// 
+    /// </summary>
 	public void HideEnemyStatusBar () {
-		enemyBarObject.SetActive(false);
+		enemyBarWindow.SetActive(false);
 	}
 
 	//Make the end turn button interactable
+    /// <summary>
+    /// 
+    /// </summary>
 	public void EnableEndTurnButton () {
 		endTurnButton.interactable = true;
 	}
 
 	//Make the end turn button interactable
+    /// <summary>
+    /// 
+    /// </summary>
 	public void DisableEndTurnButton () {
 		endTurnButton.interactable = false;
 	}
 
 	//Enable the ability buttons
+    /// <summary>
+    /// 
+    /// </summary>
 	public void EnableAbilityButtons () {
-		abilityOneButton.interactable = true;
-		abilityTwoButton.interactable = true;
-		abilityThreeButton.interactable = true;
-		abilityFourButton.interactable = true;
+        foreach (Button button in abilityButtons) {
+            button.interactable = true;
+        }
 	}
 
 	//Disable the ability buttons
+    /// <summary>
+    /// 
+    /// </summary>
 	public void DisableAbilityButtons () {
-		abilityOneButton.interactable = false;
-		abilityTwoButton.interactable = false;
-		abilityThreeButton.interactable = false;
-		abilityFourButton.interactable = false;
+        foreach (Button button in abilityButtons) {
+            button.interactable = false;
+        }
 	}
 
 	//Enable the move action button
-	public void EnableActionButton (int actionID) {
-		switch (actionID) {
-			case 0:
-				moveButton.interactable = true;
-				break;
-			case 1:
-				interactButton.interactable = true;
-				break;
-			case 2:
-				attackButton.interactable = true;
-				break;
-			case 3:
-				stopButton.interactable = true;
-				break;
-			default:
-				return;
-		}		
+    /// <summary>
+    /// 
+    /// </summary>
+	public void EnableActionButton () {
+        foreach (Button button in actionButtons) {
+            button.interactable = true;
+        }	
 	}
 
 	//Disable the move action button
-	public void DisableActionButton (int actionID) {
-		switch (actionID) {
-			case 0:
-				moveButton.interactable = false;
-				break;
-			case 1:
-				interactButton.interactable = false;
-				break;
-			case 2:
-				attackButton.interactable = false;
-				break;
-			case 3:
-				stopButton.interactable = false;
-				break;
-			default:
-				return;
-		}
+    /// <summary>
+    /// 
+    /// </summary>
+	public void DisableActionButton () {
+        foreach (Button button in actionButtons) {
+            button.interactable = false;
+        }
 	}
 
 	//Activate the UI
-	public void EnableUI () {
+    /// <summary>
+    /// 
+    /// </summary>
+	public void EnableGameUI () {
 		EnableEndTurnButton();
 		EnableAbilityButtons();
-        for (int id = 0; id < 4; id++) {
-			EnableActionButton(id);
-		}
+        EnableActionButton();
 	}
 
 	//Deactivate the UI
-	public void DisableUI () {
+    /// <summary>
+    /// 
+    /// </summary>
+	public void DisableGameUI () {
 		DisableEndTurnButton();
 		DisableAbilityButtons();
-        for (int id = 0; id < 4; id++) {
-			DisableActionButton(id);
-		}
+        DisableActionButton();
 	}
 
 	//Update the position and text of the AP cost text
-	public void UpdateAPCostText (Vector3 newWorldPosition, int newValue) {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="newWorldPosition"></param>
+    /// <param name="newValue"></param>
+	public void UpdateFeetCostText (Vector3 newWorldPosition, int newValue) {
 		actionPointsText.gameObject.SetActive(true);
-		actionPointsText.text = newValue + "AP";
+		actionPointsText.text = newValue + "/" + PlayerManager.instance.SelectedHero.MovementController.speedInFeet + " ft";
 		actionPointsText.rectTransform.position = mainCamera.WorldToScreenPoint(newWorldPosition);		
 	}
 
 	//Hide the AP cost Text
-	public void HideAPCostText () {
+    /// <summary>
+    /// 
+    /// </summary>
+	public void HideFeetCostText () {
 		actionPointsText.gameObject.SetActive(false);
 	}
 
 	//Changes the colour of the Ap text to black
-	public void SetAPCostToValid () {
+    /// <summary>
+    /// 
+    /// </summary>
+	public void SetSpeedCostToValid () {
 		actionPointsText.color = Color.black;
 	}
 
 	//Changes the colour of the Ap text to red
-	public void SetAPCostToInvalid () {
+    /// <summary>
+    /// 
+    /// </summary>
+	public void SetSpeedCostToInvalid () {
 		actionPointsText.color = Color.red;
 	}
 
 	//Update the status of the current quest
+    /// <summary>
+    /// 
+    /// </summary>
 	public void UpdateQuestStatus () {
-		questTitleText.text = QuestManager.instance.ActiveQuest.title;
-		questDescriptionText.text = QuestManager.instance.ActiveQuest.description;
-
-		//Find the last quest component in the chain and update the experience of the quest as a whole
-		QuestComponent questComp = QuestManager.instance.ActiveQuest;
-		do {
-			if (questComp.dominoQuest == null) {
-				questExperienceText.text = "Reward: " + questComp.experienceReward + " XP";
-				return;
-			} else {
-				questComp = questComp.dominoQuest;
-			}			
-		} while (questComp != null);
+		QuestComponent questComp = QuestManager.instance.activeQuest;
+        if (questComp == null) {
+            questTitleText.text = "";
+            questDescriptionText.text = "";
+            questExperienceText.text = "";
+        } else {
+            questTitleText.text = QuestManager.instance.activeQuest.title;
+            questDescriptionText.text = QuestManager.instance.activeQuest.description;
+            questExperienceText.text = "Reward: " + QuestManager.instance.activeQuest.xpReward + " XP";
+        }
 	}
-	
+
+    public void ShowSpeechChat (string characterName, string speechText) {
+        speechInteractionWindow.SetActive(true);        
+
+        StartCoroutine(SpeechChatCoroutine(characterName, speechText));
+    }
+
+    IEnumerator SpeechChatCoroutine (string characterName, string speechText) {
+        int charPtr = 0;
+        speechInteractionText.text = characterName + ":\n\"";
+        while (charPtr < speechText.Length) {
+            DisableGameUI();
+            speechInteractionText.text += speechText[charPtr];
+            charPtr++;
+            yield return new WaitForSeconds(0.025f);
+        }
+
+        speechInteractionText.text += "\"";
+    }
+
+    public void HideSpeechChat() {
+        speechInteractionWindow.SetActive(false);
+        EnableGameUI();
+    }
+
 }

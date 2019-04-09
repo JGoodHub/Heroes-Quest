@@ -20,18 +20,16 @@ public class PlayerManager : MonoBehaviour {
     //-----VARIABLES-----
 	
 	private HashSet<CharacterController> heroSet = new HashSet<CharacterController>();
-	public HashSet<CharacterController> HeroSet {
-		get { return heroSet; }
-	}
+	public HashSet<CharacterController> HeroSet { get => heroSet; }
 	
     private CharacterController selectedHero;
-	public CharacterController SelectedHero {
-		get { return selectedHero; }
-	}
+	public CharacterController SelectedHero { get => selectedHero; }
 
 	private bool playersTurn;
 	private bool actionRunning;
 	public bool ActionRunning { set => actionRunning = value; }
+
+    [Header("Line Drawing Prefabs")]
 	public GameObject lineSegmentPrefab;
 	public GameObject lineDotPrefab;
 	public GameObject groundMarkerPrefab;
@@ -59,8 +57,6 @@ public class PlayerManager : MonoBehaviour {
 	void Update () {
 		if (Input.GetMouseButtonDown(0)) {
 			CheckForNewCharacterSelection();
-		} else if(Input.GetKeyDown(KeyCode.Equals)) {
-			Debug.LogError("ERROR");
 		}
 	}
 
@@ -77,7 +73,7 @@ public class PlayerManager : MonoBehaviour {
 		UIManager.instance.UpdateHeroStatusBar();
 
 		foreach (CharacterController h in heroSet) {
-			h.CharacterData.ApplyChangeToData(new StatChange(ResourceType.ACTIONPOINTS, 3));
+            h.MovementController.ResetDistanceMoved();
 			h.MovementController.lockedDown = false;
 		}
 	}
@@ -92,7 +88,7 @@ public class PlayerManager : MonoBehaviour {
 	}
 
 	//Cast the specified ability on the selected hero
-	public void CastSelectedCharacterAbility (int abilityIndex) {	
+	public void CastSelectedCharacterAbility (int abilityIndex) {
 		if (playersTurn == true) {
 			selectedHero.CastAbility(abilityIndex);
 		}		
@@ -128,7 +124,7 @@ public class PlayerManager : MonoBehaviour {
 	//Object pools used to create the line	
 	IEnumerator TriggerMoveActionCoroutine () {
 		//Disable the UI to avoid mis clicks
-		UIManager.instance.DisableUI();
+		UIManager.instance.DisableGameUI();
 		actionRunning = true;
 		Vector3 unusedElementOffset = new Vector3(999, 999, 999);
 
@@ -144,95 +140,98 @@ public class PlayerManager : MonoBehaviour {
 
 		//Set up variables for the routine
 		bool stillSearchingForTarget = true;
-		bool heroHasRequiredActionPoints = false;
 
+        Vertex target = null;
+        Vertex source = null;
 		Path path = null;
-		
 		while (stillSearchingForTarget) {
 			#region Path Selection
 			//Check if the mouse is over a tile object
 			RaycastHit rayHit = CameraManager.instance.FrameRayHit;
 			if (rayHit.collider != null && rayHit.collider.CompareTag("Tile")) {
 				//Calculate a path to that tile
-				Vertex target = PathManager.instance.GetClosestVertexToCoordinates(PathManager.TranslateWorldSpaceToGraphCoordinates(rayHit.point));
-				Vertex source = selectedHero.MovementController.GraphObstacle.CurrentVertex;
+				target = PathManager.instance.GetClosestVertexToCoordinates(PathManager.TranslateWorldSpaceToGraphCoordinates(rayHit.point));
+				source = selectedHero.MovementController.GraphObstacle.CurrentVertex;
 				path = PathManager.instance.FindShortestPathBetween(source, target);
-				
-				if (path != null) {
-					//If the object pool doesn't have enough dots create more
-					while (lineDots.Count < path.Vertices.Count) {
-						GameObject dotInstance = Instantiate(lineDotPrefab, Vector3.zero, Quaternion.identity);
-						dotInstance.transform.SetParent(GameManager.instance.runtimeObjectsPool.transform);
-						lineDots.Add(dotInstance);
-					}
 
-					//Move all dots to an out of game location
-					foreach (GameObject dot in lineDots) {
-						dot.transform.position = unusedElementOffset;
-					}
+                #region Draw Path
+                if (path != null) {
+                    //If the object pool doesn't have enough dots create more
+                    while (lineDots.Count < path.Vertices.Count) {
+                        GameObject dotInstance = Instantiate(lineDotPrefab, Vector3.zero, Quaternion.identity);
+                        dotInstance.transform.SetParent(GameManager.instance.runtimeObjectsPool.transform);
+                        lineDots.Add(dotInstance);
+                    }
 
-					//Move the required number of dots into position
-					for (int i = 1; i < path.Vertices.Count - 1; i++) {
-						lineDots[i - 1].transform.position = path.Vertices[i].WorldPosition;
-					}
+                    //Move all dots to an out of game location
+                    foreach (GameObject dot in lineDots) {
+                        dot.transform.position = unusedElementOffset;
+                    }
 
-					//If the object pool doesn't have enough lines create more
-					while (lineSegments.Count < path.Vertices.Count) {
-						GameObject lineInstance = Instantiate(lineSegmentPrefab, Vector3.zero, Quaternion.identity);
-						lineInstance.transform.SetParent(GameManager.instance.runtimeObjectsPool.transform);
-						lineSegments.Add(lineInstance);
-					}
+                    //Move the required number of dots into position
+                    for (int i = 1; i < path.Vertices.Count - 1; i++) {
+                        lineDots[i - 1].transform.position = path.Vertices[i].WorldPosition;
+                    }
 
-					//Move the line segments into place and rotate in the required direction
-					for (int i = 0; i < path.Vertices.Count - 1; i++) {
-						lineSegments[i].transform.position = (path.Vertices[i].WorldPosition + path.Vertices[i + 1].WorldPosition) / 2;
-						lineSegments[i].transform.forward = (path.Vertices[i + 1].WorldPosition - path.Vertices[i].WorldPosition).normalized;
-						
-						if ((Mathf.Abs(lineSegments[i].transform.forward.x) < 1f && Mathf.Abs(lineSegments[i].transform.forward.x) > 0f)) {
-							lineSegments[i].transform.localScale = new Vector3(1, 1, 1.5f);
-						} else {
-							lineSegments[i].transform.localScale = new Vector3(1, 1, 1);
-						}					
-					}								
+                    //If the object pool doesn't have enough lines create more
+                    while (lineSegments.Count < path.Vertices.Count) {
+                        GameObject lineInstance = Instantiate(lineSegmentPrefab, Vector3.zero, Quaternion.identity);
+                        lineInstance.transform.SetParent(GameManager.instance.runtimeObjectsPool.transform);
+                        lineSegments.Add(lineInstance);
+                    }
 
-					//Move the rest to an out of game location
-					for (int j = path.Vertices.Count - 1; j < lineSegments.Count; j++) {
-						lineSegments[j].transform.position = unusedElementOffset;
-					}
+                    //Move the line segments into place and rotate in the required direction
+                    for (int i = 0; i < path.Vertices.Count - 1; i++) {
+                        lineSegments[i].transform.position = (path.Vertices[i].WorldPosition + path.Vertices[i + 1].WorldPosition) / 2;
+                        lineSegments[i].transform.forward = (path.Vertices[i + 1].WorldPosition - path.Vertices[i].WorldPosition).normalized;
 
-					//Move the ground marker to the final vertex in the path
-					groundMarkerInstance.transform.position = path.Vertices[path.Vertices.Count - 1].WorldPosition;
-					
-					//Move the UI AP text element
-					UIManager.instance.UpdateAPCostText(groundMarkerInstance.transform.position, selectedHero.MovementController.APCostOfMovement(path));
-					if (selectedHero.MovementController.APCostOfMovement(path) <= selectedHero.CharacterData.GetResourceOfType(ResourceType.ACTIONPOINTS)) {
-						UIManager.instance.SetAPCostToValid();	
-						heroHasRequiredActionPoints = true;				
-					} else {
-						UIManager.instance.SetAPCostToInvalid();
-						heroHasRequiredActionPoints = false;
-					}
-				}	
-			}
-			#endregion
+                        if ((Mathf.Abs(lineSegments[i].transform.forward.x) < 1f && Mathf.Abs(lineSegments[i].transform.forward.x) > 0f)) {
+                            lineSegments[i].transform.localScale = new Vector3(1, 1, 1.5f);
+                        } else {
+                            lineSegments[i].transform.localScale = new Vector3(1, 1, 1);
+                        }
+                    }
 
-			#region Path Conformation
-			//Set the relevent flags depending of which button is pressed
-			if (Input.GetMouseButtonDown(0) && path != null && heroHasRequiredActionPoints) {
-				stillSearchingForTarget = false;
+                    //Move the rest to an out of game location
+                    for (int j = path.Vertices.Count - 1; j < lineSegments.Count; j++) {
+                        lineSegments[j].transform.position = unusedElementOffset;
+                    }
 
-				//If the characters has the AP required move along the path
-				path = selectedHero.MovementController.CheckForEncounterAndTrimPath(path);
-				selectedHero.MovementController.MoveCharacter(path, 0f);
-			} else if (Input.GetMouseButtonDown(1)) {
-				stillSearchingForTarget = false;
-				
-				actionRunning = false;
-				UIManager.instance.EnableUI();
-			}
-			#endregion
+                    //Move the ground marker to the final vertex in the path
+                    groundMarkerInstance.transform.position = path.Vertices[path.Vertices.Count - 1].WorldPosition;
 
-			yield return null;
+                    //Move the UI AP text element
+                    UIManager.instance.UpdateFeetCostText(groundMarkerInstance.transform.position, Mathf.RoundToInt(path.Length));
+                    if (selectedHero.MovementController.CanMoveDistance(path.Length)) {
+                        UIManager.instance.SetSpeedCostToValid();
+                    } else {
+                        UIManager.instance.SetSpeedCostToInvalid();
+                    }
+                }
+                #endregion
+
+                #region Execute Path Movement
+                //Set the relevent flags depending of which button is pressed
+                if (Input.GetMouseButtonDown(0)) {
+                    if (path != null && selectedHero.MovementController.CanMoveDistance(path.Length)) {
+                        stillSearchingForTarget = false;
+
+                        //If the characters has the AP required move along the path
+                        path = selectedHero.MovementController.CheckForEncounterAndTrimPath(path);
+                        selectedHero.MovementController.MoveCharacter(path, 0f);
+                    }
+                } else if (Input.GetMouseButtonDown(1)) {
+                    stillSearchingForTarget = false;
+
+                    actionRunning = false;
+                    UIManager.instance.EnableGameUI();
+                }
+                #endregion
+
+            }
+            #endregion
+
+            yield return null;
 		}
 
 		//Move all the line elements to an out of game location
@@ -243,36 +242,39 @@ public class PlayerManager : MonoBehaviour {
 		}
 
 		//Hide the UI text
-		UIManager.instance.HideAPCostText();
+		UIManager.instance.HideFeetCostText();
 	}
 
 	public void TriggerInteractAction () {
-		if (playersTurn == true) {
+		if (playersTurn == true && EnemyAIManager.instance.combatActive == false) {
 			StartCoroutine(TriggerInteractActionCoroutine());
 		}
 	}
 
 	IEnumerator TriggerInteractActionCoroutine () {
 		UIManager.instance.ChangeCursorTo(UIManager.CursorType.INTERACT);
-		UIManager.instance.DisableUI();
+		UIManager.instance.DisableGameUI();
 		actionRunning = true;
 
 		bool awaitingSelection = true;
 		while (awaitingSelection == true) {
 			RaycastHit rayHit = CameraManager.instance.FrameRayHit;
-			if (rayHit.collider != null && rayHit.collider.CompareTag("Interactable")) {
-				if (Input.GetMouseButtonDown(0)) {
+            if (Input.GetMouseButtonDown(0)) {
+                if (rayHit.collider != null && rayHit.collider.CompareTag("Interactable")) {
 					IInteractable interactableObject = rayHit.collider.GetComponent<IInteractable>();
-					GraphObstacle objectObstacleComponent = interactableObject.GraphObstacleComponent;
+					GraphObstacle objectObstacleComponent = rayHit.collider.GetComponent<GraphObstacle>();
 					if (objectObstacleComponent.CurrentVertex.GetNeighbouringVertices().Contains(selectedHero.MovementController.GraphObstacle.CurrentVertex)) {
 						selectedHero.MovementController.LookAtVector(objectObstacleComponent.CurrentVertex.WorldPosition);
 						interactableObject.TriggerInteraction();
+
+                        if (rayHit.collider.GetComponent<NPCController>() != null) {
+                            rayHit.collider.GetComponent<NPCController>().MovementController.LookAtVector(selectedHero.transform.position);
+                        }
+
 						awaitingSelection = false;
 					}
-				}  
-			}
-
-			if (Input.GetMouseButtonDown(1)) {
+				}
+			} else if (Input.GetMouseButtonDown(1)) {
 				awaitingSelection = false;
 				actionRunning = false;
 			}
@@ -282,7 +284,8 @@ public class PlayerManager : MonoBehaviour {
 
 
 		UIManager.instance.ChangeCursorTo(UIManager.CursorType.DEFAULT);
-		UIManager.instance.EnableUI();
+		UIManager.instance.EnableGameUI();
+        UIManager.instance.DisableEndTurnButton();
 		actionRunning = false;
 	}
 

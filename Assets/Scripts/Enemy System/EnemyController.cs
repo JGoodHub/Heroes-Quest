@@ -10,6 +10,9 @@ public class EnemyController : CharacterController {
     //The hero the enemy is targeting
     private CharacterController targetHero;
 
+    [HideInInspector]
+    public EnemyEncounter encounterInstance;
+
     //-----METHODS-----
 
     //Override the CharacterController to parse the hero directly to the ability, rather than using the target system

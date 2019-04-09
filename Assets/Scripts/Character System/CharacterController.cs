@@ -11,15 +11,11 @@ public class CharacterController : MonoBehaviour {
     
     //Reference to the objects character data script
     protected CharacterData characterData;
-    public CharacterData CharacterData {
-        get { return this.characterData; }
-    }
+    public CharacterData CharacterData { get => characterData; }
 
     //Reference to the objects move controller script
     protected MovementController movementController;
-    public MovementController MovementController {
-        get { return this.movementController; }
-    }
+    public MovementController MovementController { get => movementController; }
 
     //The characters highlight object
     public MeshRenderer selectionRing;

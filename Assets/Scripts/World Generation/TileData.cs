@@ -45,22 +45,21 @@ public class TileData : MonoBehaviour {
 
     //The corrdinates of the tile in the map grid
     private int gridX;
-    public int GridX {
-        get { return this.gridX; }
-    }
+    public int GridX { get => gridX; }
 
     private int gridY;
-    public int GridY {
-        get { return this.gridY; }
-    }    
+    public int GridY { get => gridY; }    
 
     private int absoluteRotation = 0;
 
     private int tileMapLevel;
     public int TileMapLevel {
-        get { return this.tileMapLevel; }
-        set { this.tileMapLevel = value; }
+        get => tileMapLevel;
+        set => tileMapLevel = value;
     }
+    
+    [HideInInspector]
+    public int tileInstanceID;
 
     //The tiles adjacent to this one that have connector nodes
     private HashSet<TileData> adjacentTilesWithNodes;
@@ -304,10 +303,11 @@ public class TileData : MonoBehaviour {
 
             if (drawWalkableToggles) {
                 //Draw cubes on each grid space that's marked as walkable
-                Gizmos.color = Color.green;
                 for (Char id = 'A'; id != 'E'; id++) {
                     if (IsWalkableSpaceActive(id)) {
+                        Gizmos.color = Color.green;
                         Gizmos.DrawCube(GetWorldPositionOfWalkableSpace(id) + new Vector3(0, GetWalkableSpaceDisplacement(id), 0), Vector3.one);
+                        
                     }
                 }
             }

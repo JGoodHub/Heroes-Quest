@@ -6,7 +6,7 @@ public class EnemyEncounter : MonoBehaviour {
 
     //-----VARIABLES-----
     
-    public CharacterController[] enemies;
+    private HashSet<CharacterController> enemies;
 
     private Vertex encounterCentreVertex;
     public float perceptionRange;
@@ -17,43 +17,58 @@ public class EnemyEncounter : MonoBehaviour {
 
     //-----METHODS-----
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void Initialise () {
-        //Initialise all the enemies in this encounter
-		foreach (EnemyController e in enemies) {
+        enemies = new HashSet<CharacterController>(GetComponentsInChildren<CharacterController>());
+        foreach (EnemyController e in enemies) {
 			e.Initialise();
+            e.encounterInstance = this;
 		}
 
         encounterCentreVertex = CalculateEnemyGroupCenterVertex();
         triggerVertices = PathManager.instance.GetVerticesInRange(encounterCentreVertex, perceptionRange, true);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     public Vertex CalculateEnemyGroupCenterVertex () {
         Vector2 averageTilePosition = Vector2.zero;
         foreach (CharacterController enemy in enemies) {
             averageTilePosition += enemy.MovementController.GraphObstacle.CurrentVertex.GraphCoordinates;
         }
 
-        averageTilePosition /= enemies.Length;
+        averageTilePosition /= enemies.Count;
         return PathManager.instance.GetClosestVertexToCoordinates(Vector2Int.RoundToInt(averageTilePosition));
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public void ProcessTurn () {
         triggerVertices.Clear();
 
-        if (enemies.Length > 0) {
+        if (enemies.Count > 0) {
             StartCoroutine(EncounterTurnCoroutine());
         } else {
-            //All the enemies are dead, the player beat the encounter, reward them with xp
+            encounterActive = false;
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
     IEnumerator EncounterTurnCoroutine () {
         yield return new WaitForSeconds(Random.Range(0.25f, 0.75f));
 
 		//Iterate through each enemy in the instance (all enemies in the scene for now)
 		foreach (EnemyController enemy in enemies) {
 			//Set the cameras focus to the current enemy and restore some the enemies AP
-			CameraManager.instance.SetTrackingTarget(enemy.MovementController);
+			CameraManager.instance.SetTrackingTarget(enemy.gameObject);
             enemy.CharacterData.ApplyChangeToData(new StatChange(ResourceType.ACTIONPOINTS, 3));
 
 			yield return new WaitForSeconds(0.5f);
@@ -65,7 +80,7 @@ public class EnemyEncounter : MonoBehaviour {
 				//Find the hero with the shortest length path to the enemy and target that hero
 				if (targetHero != null) {
 					Path alternateShortestPath = PathManager.instance.FindShortestPathBetween(enemy.MovementController.GraphObstacle.CurrentVertex, hero.MovementController.GraphObstacle.CurrentVertex);
-					if (alternateShortestPath.GetPathLength() < currentShortestPath.GetPathLength()) {
+					if (alternateShortestPath.Length < currentShortestPath.Length) {
 						targetHero = hero;
 						currentShortestPath = alternateShortestPath;
 					}
@@ -75,12 +90,12 @@ public class EnemyEncounter : MonoBehaviour {
 				}
 			}
 
-			//Trim the path until its within the enemies action points
-			while (enemy.MovementController.APCostOfMovement(currentShortestPath) >= enemy.CharacterData.GetResourceOfType(ResourceType.ACTIONPOINTS)) {
+            //Trim the path until its within the enemies action points
+            while (enemy.MovementController.CanMoveDistance(currentShortestPath.Length) == false) {
 				currentShortestPath.TrimPath(1);
+                yield return null;
+                Debug.Log("RUN");
 			}
-
-			Debug.Log(currentShortestPath.GetPathLength() + ", " + enemy.MovementController.APCostOfMovement(currentShortestPath));
 
 			//Move the enemy along that path and wait for them to rest the last vertex
 			enemy.MovementController.MoveCharacter(currentShortestPath, 0f);
@@ -93,11 +108,13 @@ public class EnemyEncounter : MonoBehaviour {
 			enemy.CastAbility(0);
 			while (AbilityManager.instance.abilityRunning) {
 				yield return null;
-			}				
+			}
+
+            //enemy.MovementController.ResetDistanceMoved();
 		}
 
 		//Focus the camera on the players selected hero
-		CameraManager.instance.SetTrackingTarget(PlayerManager.instance.SelectedHero.MovementController);
+		CameraManager.instance.SetTrackingTarget(PlayerManager.instance.SelectedHero.gameObject);
 		while (CameraManager.instance.TrackingTargetReached == false) {
 			//Wait one frame
 			yield return null;
