@@ -57,10 +57,9 @@ MonoBehaviour:
   startNodeIndex: 0
   endNodeIndex: 0
   tileInstanceID: 0
-  drawGizmos: 1
-  drawConnectorNodes: 1
-  drawWalkableToggles: 1
-  drawTileDirection: 1
+  drawConnectorNodes: 0
+  drawWalkableToggles: 0
+  drawTileDirection: 0
   drawTileBounds: 0
 --- !u!1 &1476601167247661964
 GameObject:

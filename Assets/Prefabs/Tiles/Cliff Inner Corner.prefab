@@ -212,10 +212,10 @@ MonoBehaviour:
   tileDisplacements: []
   startNodeIndex: 3
   endNodeIndex: 2
-  drawGizmos: 1
-  drawConnectorNodes: 1
+  tileInstanceID: 0
+  drawConnectorNodes: 0
   drawWalkableToggles: 0
-  drawTileDirection: 1
+  drawTileDirection: 0
   drawTileBounds: 0
 --- !u!1 &571064455957378587
 GameObject:

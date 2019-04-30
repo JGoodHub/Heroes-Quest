@@ -9,24 +9,22 @@ public class CharacterController : MonoBehaviour {
 
     //-----VARIABLES-----
     
-    //Reference to the objects character data script
     protected CharacterData characterData;
     public CharacterData CharacterData { get => characterData; }
 
-    //Reference to the objects move controller script
     protected MovementController movementController;
     public MovementController MovementController { get => movementController; }
 
-    //The characters highlight object
-    public MeshRenderer selectionRing;
+    public GameObject selectionHightlight;
 
-    //The ID's for each ability and a reference to its instance
     public string[] abilityIDs;
     protected Ability[] abilities;
 
     //-----METHODS-----
 
-    //Setup Method
+    /// <summary>
+    /// Sets up the component references
+    /// </summary>
     public virtual void Initialise () {
         //Grab the reference to the other scripts on this object
         characterData = GetComponent<CharacterData>();
@@ -40,7 +38,7 @@ public class CharacterController : MonoBehaviour {
         abilities = new Ability[abilityIDs.Length];
         for (int i = 0; i < abilityIDs.Length; i++) {
             try {
-                abilities[i] = AbilityBook.instance.AbilityDict[abilityIDs[i]];
+                abilities[i] = AbilityCollection.instance.AbilityDict[abilityIDs[i]];
             } catch (Exception e) {
                 //Throw an error if no ability is found that matches that ID
                 Debug.LogError("Ability ID not found, check ability book definitions and spelling");
@@ -48,35 +46,50 @@ public class CharacterController : MonoBehaviour {
             }
         }
 
-        //Deselect the character by default
+        //De-select the character by default
         Unhighlight();
     }
 
-    //Activate the characters highlight object
+    /// <summary>
+    /// Activate the characters highlight object
+    /// </summary>
     public void Highlight() {
-        selectionRing.enabled = true;
+        selectionHightlight.SetActive(true);
     }
 
-    //Deactivate the characters highlight object
+    /// <summary>
+    /// Deactivate the characters highlight object
+    /// </summary>
     public void Unhighlight() {
-        selectionRing.enabled = false;
+        selectionHightlight.SetActive(false);
     }
 
-    //Check if the character has the required resources to cast the ability
+    /// <summary>
+    /// Check if the character has the required resources to cast the ability
+    /// </summary>
+    /// <param name="ability">The ability the character wants to cast</param>
+    /// <returns>A boolean of whether the character can cast the ability</returns>
     public bool CharacterHasResourcesToCast (Ability ability) {
         bool costRequirementsMet = true;
 
         //Check that the hero has enough resources to cast the ability
-        foreach (StatChange change in ability.statChanges) {
+        foreach (StatChange change in ability.resourceCosts) {
             if (characterData.GetResourceOfType(change.Resource) < change.Amount * -1) {
                 costRequirementsMet = false;
             }
         }
 
+        if (characterData.actionAvailable == false) {
+            costRequirementsMet = false;
+        }
+
         return costRequirementsMet;
     }
 
-    //Cast one of the characters abilities
+    /// <summary>
+    /// Cast one of the characters abilities
+    /// </summary>
+    /// <param name="abilityIndex">The index of the ability to cast</param>
     public virtual void CastAbility (int abilityIndex) {
         //Get a reference to the chosen ability
         Ability chosenAbility = abilities[abilityIndex];
@@ -89,25 +102,27 @@ public class CharacterController : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Start the death coroutine
+    /// </summary>
     public virtual void Die () {
         Debug.Log("Oh shit, i'm dead");     
-        StartCoroutine(DieCoroutine());   
+        StartCoroutine(DieCoroutine());  
     }
 
+    /// <summary>
+    /// Handles character death
+    /// </summary>
+    /// <returns></returns>
     IEnumerator DieCoroutine () {
-        yield return new WaitForSeconds(2f);
-        PlayerManager.instance.HeroSet.Remove(this);
-        PlayerManager.instance.SelectRandomHero();
-        movementController.lockedDown = true;
+        yield return new WaitForSeconds(0.5f);
+        movementController.disableMovement = true;
         movementController.GraphObstacle.UnblockCurrentVertex();
-        Unhighlight();
         GetComponentInChildren<Animator>().SetTrigger("Die");
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
         Destroy(gameObject, 10f);
-        float counter = 0;
-        while (counter < 3.87f || true) {
-            //transform.Translate(-Vector3.down * 20f * Time.deltaTime);
-            counter += Time.deltaTime;
+        while (true) {
+            transform.Translate(Vector3.down * 5f * Time.deltaTime);
             yield return null;
         }
         

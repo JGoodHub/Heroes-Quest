@@ -22,8 +22,10 @@ public class GameManager : MonoBehaviour {
 
     //-----METHODS-----
 
+    /// <summary>
+    /// Initialise all the manager scripts in the game
+    /// </summary>
     void Start() {
-		//Initialise all the manager scripts in the game
         TileManager.instance.Initialise();
 		CameraManager.instance.Initialise();
 		UIManager.instance.Initialise();
@@ -35,47 +37,58 @@ public class GameManager : MonoBehaviour {
 		} else {
 			UIManager.instance.SetToGameMode();
 			PathManager.instance.Initialise();
-			AbilityBook.instance.Initialise();		
+			AbilityCollection.instance.Initialise();		
 			PlayerManager.instance.Initialise();		
 			EnemyAIManager.instance.Initialise();
 			QuestManager.instance.Initialise();				
 			InteractablesManager.instance.Initialise();
 
-            //Start the players turn immediately
 			StartPlayersTurn();
 		}		
     }
 
-	//Start the players turn
-	public void StartPlayersTurn () {
-        UIManager.instance.EnableGameUI();
+    /// <summary>
+    /// Start the players turn
+    /// </summary>
+    public void StartPlayersTurn () {
+        UIManager.instance.EnablePlayerControls();
 
         if (EnemyAIManager.instance.combatActive == false) {
-            UIManager.instance.DisableEndTurnButton();
+            UIManager.instance.HideEndTurnButton();
+        } else {
+            UIManager.instance.ShowEndTurnButton();
+            UIManager.instance.EnableEndTurnButton();
         }
-
-		      
+        
 		PlayerManager.instance.BeginTurn();
 	}
 
-	//End the players turn and start the enemies
-	public void EndPlayersTurn () {
-		UIManager.instance.DisableGameUI();
-		PlayerManager.instance.EndTurn();
+    /// <summary>
+    /// End the players turn and start the enemies
+    /// </summary>
+    public void EndPlayersTurn () {
+        if (PlayerManager.instance.playersTurn) {
+            UIManager.instance.DisableEndTurnButton();
+            UIManager.instance.DisablePlayerControls();
 
-		StartEnemyTurn();
+            PlayerManager.instance.EndTurn();
+
+            StartEnemyTurn();
+        }
 	}
 
-	//Start the enemies turn
-	public void StartEnemyTurn () {
+    /// <summary>
+    /// Start the enemies turn
+    /// </summary>
+    public void StartEnemyTurn () {
 		EnemyAIManager.instance.BeginTurn();
 	}
 
-	//End the enemies turn
-	public void EndEnemyTurn () {
+    /// <summary>
+    /// End the enemies turn
+    /// </summary>
+    public void EndEnemyTurn () {
 		StartPlayersTurn();
 	}
-
-
 
 }

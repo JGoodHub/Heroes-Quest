@@ -6,24 +6,20 @@ public class Path {
 
     //-----VARIABLES-----
     
-    private List<Vertex> vertices = new List<Vertex>();
-    public List<Vertex> Vertices { get => vertices;  }
+    public List<Vertex> vertices = new List<Vertex>();
+    public List<Edge> edges = new List<Edge>();
 
-    private List<Edge> edges = new List<Edge>();
-    public List<Edge> Edges { get => edges; }
-
-    private float length;
-    public float Length { get => length; }
+    public float length;
     
     //-----METHODS-----
 
     /// <summary>
-    /// 
+    /// Calculate all the edges using the vertices
     /// </summary>
     public void CalculateEdges () {
         edges.Clear();
         for (int i = 0; i < vertices.Count - 1; i++) {
-            foreach (Edge e in vertices[i].IncidentEdges) {
+            foreach (Edge e in vertices[i].incidentEdges) {
                 if (e.GetOppositeVertex(vertices[i]) == vertices[i + 1]) {
                     edges.Add(e);
                     break;
@@ -32,17 +28,15 @@ public class Path {
         }
     }
 
-    //Reverse the order of the paths vertices
     /// <summary>
-    /// 
+    /// Reverse the order of the paths vertices
     /// </summary>
     public void ReversePath () {
         vertices.Reverse();
     }
 
-    //Get the length of the path
     /// <summary>
-    /// 
+    /// Get the length of the path
     /// </summary>
     public void CalculatePathLength () {
         length = 0;
@@ -51,9 +45,8 @@ public class Path {
         }
     }
 
-    //Trim the path by a set number of vertices
     /// <summary>
-    /// 
+    /// Trim the path by a set number of vertices
     /// </summary>
     /// <param name="verticesToRemove"></param>
     public void TrimPath (int verticesToRemove) {
@@ -65,8 +58,5 @@ public class Path {
         CalculateEdges();
         CalculatePathLength();
     }
-
-
-
     
 }

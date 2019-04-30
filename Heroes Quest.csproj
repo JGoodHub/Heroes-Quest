@@ -631,18 +631,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Ability System\Ability.cs" />
-    <Compile Include="Assets\Scripts\Ability System\AbilityBook.cs" />
+    <Compile Include="Assets\Scripts\Ability System\AbilityCollection.cs" />
     <Compile Include="Assets\Scripts\Ability System\AbilityManager.cs" />
-    <Compile Include="Assets\Scripts\Ability System\VFXEffect.cs" />
+    <Compile Include="Assets\Scripts\Ability System\EffectComponent.cs" />
     <Compile Include="Assets\Scripts\Camera\CameraManager.cs" />
     <Compile Include="Assets\Scripts\Camera\LightingManager.cs" />
+    <Compile Include="Assets\Scripts\Character System\HeroController.cs" />
     <Compile Include="Assets\Scripts\Character System\CharacterController.cs" />
     <Compile Include="Assets\Scripts\Character System\CharacterData.cs" />
     <Compile Include="Assets\Scripts\Character System\MovementController.cs" />
     <Compile Include="Assets\Scripts\Character System\NPCController.cs" />
     <Compile Include="Assets\Scripts\Enemy System\EnemyAIManager.cs" />
     <Compile Include="Assets\Scripts\Enemy System\EnemyController.cs" />
-    <Compile Include="Assets\Scripts\Enemy System\EnemyEncounter.cs" />
+    <Compile Include="Assets\Scripts\Enemy System\EncounterController.cs" />
     <Compile Include="Assets\Scripts\Game Management\GameManager.cs" />
     <Compile Include="Assets\Scripts\Game Management\PlayerManager.cs" />
     <Compile Include="Assets\Scripts\Game Management\UIManager.cs" />
@@ -655,8 +656,7 @@
     <Compile Include="Assets\Scripts\Pathfinding\Path.cs" />
     <Compile Include="Assets\Scripts\Pathfinding\PathManager.cs" />
     <Compile Include="Assets\Scripts\Pathfinding\Vertex.cs" />
-    <Compile Include="Assets\Scripts\Questing System\IQuestable.cs" />
-    <Compile Include="Assets\Scripts\Questing System\QuestBook.cs" />
+    <Compile Include="Assets\Scripts\Questing System\QuestCollection.cs" />
     <Compile Include="Assets\Scripts\Questing System\QuestComponent.cs" />
     <Compile Include="Assets\Scripts\Questing System\QuestManager.cs" />
     <Compile Include="Assets\Scripts\Questing System\QuestObjective.cs" />

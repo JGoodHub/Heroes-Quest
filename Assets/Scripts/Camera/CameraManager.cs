@@ -18,21 +18,15 @@ public class CameraManager : MonoBehaviour {
 
 	//-----VARIABLES-----
 
-	//Speed the camera pans across the world
 	public float cameraPanSpeed;
-
-	//Size of the border around the screen used for mouse panning
 	public float panEdgeSize;
 
-	//Toggle panning for debug purposes
 	private bool userPanEnabled;
 	public bool globalPanEnabled;
 	public bool useArrowKeysInstead;	
 
 	private RaycastHit frameRayHit;
-	public RaycastHit FrameRayHit {
-		get { return frameRayHit; }
-	}
+	public RaycastHit FrameRayHit { get => frameRayHit; }
 
 	private string lastHoveredTag = "";
 
@@ -45,24 +39,34 @@ public class CameraManager : MonoBehaviour {
 	
 	//-----METHODS-----
 
-	//Setup Method
+    /// <summary>
+    /// Setup for the camera
+    /// </summary>
 	public void Initialise () {
 		yLock = transform.position.y;
 	}
 
-	//Get the ray from the camera is the direction of the mouse
-	public Ray GetCameraRay () {
+    /// <summary>
+    /// Get the ray from the camera is the direction of the mouse
+    /// </summary>
+    /// <returns></returns>
+    public Ray GetCameraRay () {
 		return GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
-	}		
+	}
 
-	//Fire a raycast using the camera ray and return what it hit, if anything
-	public RaycastHit FireRaycastFromMousePosition () {
+    /// <summary>
+    /// Fire a raycast using the camera ray and return what it hit, if anything
+    /// </summary>
+    /// <returns>The RaycastHit for the collider hit</returns>
+    public RaycastHit FireRaycastFromMousePosition () {
 		RaycastHit hit;
 		Physics.Raycast(GetCameraRay(), out hit, 1000f);
-		//Debug.DrawRay(transform.position, GetCameraRay().direction * 1000f, Color.red);
 		return hit;
 	}
 	
+    /// <summary>
+    /// Update called once per frame
+    /// </summary>
 	void Update () {
 		//Check if the mouse is on the edge of the screen and move the camera in the corresponding direction
 		#region Camera Pan
@@ -129,7 +133,8 @@ public class CameraManager : MonoBehaviour {
 				cameraPosition.y = yLock;
 				transform.position = cameraPosition;
 
-				if (Vector3.Distance(cameraPosition, trackingTarget.transform.position + centreOnOffset) < 0.1f) {
+                Vector2 targetPosition = new Vector2(trackingTarget.transform.position.x + centreOnOffset.x, trackingTarget.transform.position.z + centreOnOffset.z);
+				if (Vector2.Distance(new Vector2(cameraPosition.x, cameraPosition.z), targetPosition) < 0.5f) {
 					trackingTargetReached = true;
 				}
 			} else {
@@ -139,21 +144,21 @@ public class CameraManager : MonoBehaviour {
 		#endregion		
 	}
 
-	//Set the MovementController that the camera should focus on
-	public void SetTrackingTarget (GameObject newTarget) {
+    /// <summary>
+    /// Set the MovementController that the camera should focus on
+    /// </summary>
+    /// <param name="newTarget">The target to start tracking</param>
+    public void SetTrackingTarget (GameObject newTarget) {
 		trackingTarget = newTarget;
 		trackingTargetReached = false;
 	}
 
-	//Clear the focus target
-	public void ClearTrackingTarget () {
+    /// <summary>
+    /// Clear the focus target
+    /// </summary>
+    public void ClearTrackingTarget () {
 		trackingTarget = null;
 	}
 
-	//-----GIZMOS-----
-    //public bool drawGizmos;
-	void OnDrawGizmos () {
-		
-	}
 
 }

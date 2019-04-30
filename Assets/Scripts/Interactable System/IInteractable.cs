@@ -4,12 +4,13 @@ using UnityEngine;
 
 public interface IInteractable {
 
-    //-----PROPERTIES-----
-
-
     //-----METHODS-----
 
-    void Initialise ();
-    void TriggerInteraction ();
+    void Initialise();
+
+    void HighlightObject();
+    void UnhighlightObject();
+
+    void TriggerInteraction();
     
 }

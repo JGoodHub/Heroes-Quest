@@ -3,29 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerManager : MonoBehaviour { 
+public class PlayerManager : MonoBehaviour {
 
     //-----SINGLETON SETUP-----
 
-	public static PlayerManager instance = null;
-	
-	void Awake () {
-		if (instance == null) {
-			instance = this;
-		} else {
-			Destroy(gameObject);
-		}
-	}
+    public static PlayerManager instance = null;
+
+    void Awake() {
+        if (instance == null) {
+            instance = this;
+        } else {
+            Destroy(gameObject);
+        }
+    }
 
     //-----VARIABLES-----
-	
-	private HashSet<CharacterController> heroSet = new HashSet<CharacterController>();
-	public HashSet<CharacterController> HeroSet { get => heroSet; }
-	
-    private CharacterController selectedHero;
-	public CharacterController SelectedHero { get => selectedHero; }
 
-	private bool playersTurn;
+    private HashSet<CharacterController> heroSet = new HashSet<CharacterController>();
+    public HashSet<CharacterController> HeroSet { get => heroSet; }
+
+    private CharacterController selectedHero;
+    public CharacterController SelectedHero { get => selectedHero; }
+
+    [HideInInspector] public bool playersTurn;
 	private bool actionRunning;
 	public bool ActionRunning { set => actionRunning = value; }
 
@@ -36,6 +36,9 @@ public class PlayerManager : MonoBehaviour {
 
     //-----METHODS-----
 
+    /// <summary>
+    /// Setup all the heroes in the scene
+    /// </summary>
     public void Initialise () {
 		//Find and initialise all the characters in the game
 		foreach (GameObject gameObj in GameObject.FindGameObjectsWithTag("Hero")) {
@@ -48,54 +51,97 @@ public class PlayerManager : MonoBehaviour {
 		if (heroSet.Count > 0) {
 			SelectRandomHero();
 		} else {
-			Debug.LogError("No hero's in the hero's set, check tags and gameobjects in the scene");
+			Debug.LogError("No hero's in the hero's set, check tags and game objects in the scene");
 		}
 
     }
 
-	//Checks for new selection each frame
-	void Update () {
+    /// <summary>
+    /// Checks for new selection each frame
+    /// </summary>
+    void Update () {
 		if (Input.GetMouseButtonDown(0)) {
 			CheckForNewCharacterSelection();
 		}
 	}
 
+    /// <summary>
+    /// Select a random hero
+    /// </summary>
 	public void SelectRandomHero () {
 		CharacterController[] heroArrayTemp = heroSet.ToArray();
 		selectedHero = heroArrayTemp[Mathf.RoundToInt(Random.Range(0, HeroSet.Count - 1))];
 		selectedHero.Highlight();
 	}
 
-	//Begin the players turn and unlock all their characters
+    /// <summary>
+    /// Select a hero by name
+    /// </summary>
+    /// <param name="characterName">The name of the hero to select</param>
+    public void SelectHeroByName (string characterName) {
+        StartCoroutine(SelectHeroBynameCoroutine(characterName));
+    }
+
+    /// <summary>
+    /// Coroutine for selecting a hero by name
+    /// </summary>
+    /// <param name="characterName">The name of the hero to select</param>
+    /// <returns></returns>
+    IEnumerator SelectHeroBynameCoroutine (string characterName) {
+        foreach (CharacterController heroController in heroSet) {
+            if (heroController.CharacterData.characterName == characterName) {
+                selectedHero.Unhighlight();
+                selectedHero = heroController;
+                selectedHero.Highlight();
+
+                CameraManager.instance.SetTrackingTarget(selectedHero.gameObject);
+                while (CameraManager.instance.TrackingTargetReached == false) {
+                    yield return null;
+                }
+                CameraManager.instance.ClearTrackingTarget();
+            }
+        }
+    }
+    	
+    /// <summary>
+    /// 
+    /// </summary>
 	public void BeginTurn () {
 		playersTurn = true;
 
-		UIManager.instance.UpdateHeroStatusBar();
-
 		foreach (CharacterController h in heroSet) {
             h.MovementController.ResetDistanceMoved();
-			h.MovementController.lockedDown = false;
+            h.CharacterData.actionAvailable = true;
+			h.MovementController.disableMovement = false;
+
+            if (EnemyAIManager.instance.combatActive) {
+                h.MovementController.infinityMovement = false;
+            } else {
+                h.MovementController.infinityMovement = true;
+            }
 		}
+
+        UIManager.instance.UpdateHeroStatusBar();
+
+    }
+
+    /// <summary>
+    /// End the players turn and lock down all their characters
+    /// </summary>
+    public void EndTurn () {
+        if (playersTurn) {
+            playersTurn = false;
+
+            foreach (CharacterController h in heroSet) {
+                h.MovementController.disableMovement = true;
+            }
+        }
 	}
 
-	//End the players turn and lock down all their characters
-	public void EndTurn () {
-		playersTurn = false;
-
-		foreach (CharacterController h in heroSet) {
-			h.MovementController.lockedDown = true;
-		}
-	}
-
-	//Cast the specified ability on the selected hero
-	public void CastSelectedCharacterAbility (int abilityIndex) {
-		if (playersTurn == true) {
-			selectedHero.CastAbility(abilityIndex);
-		}		
-	}
-	
-	//Check if the player has selected a new hero and set that as the primary hero
-	public void CheckForNewCharacterSelection () {
+    /// <summary>
+    /// Check if the player has selected a new hero and set that as the primary hero
+    /// </summary>
+    public void CheckForNewCharacterSelection () {
 		RaycastHit rayHit = CameraManager.instance.FrameRayHit;
 		if (playersTurn) {
 			if (rayHit.collider!= null && rayHit.collider.tag == "Hero") {
@@ -114,17 +160,33 @@ public class PlayerManager : MonoBehaviour {
 		}
 	}
 
-	//If its the players turn trigger the coroutine
-	public void TriggerMoveAction () {
+    /// <summary>
+    /// Cast the specified ability on the selected hero
+    /// </summary>
+    /// <param name="abilityIndex">The index of the ability to cast</param>
+    public void CastSelectedCharacterAbility(int abilityIndex) {
+        if (playersTurn) {
+            selectedHero.CastAbility(abilityIndex);
+        }
+    }
+
+    /// <summary>
+    /// If its the players turn trigger the coroutine
+    /// </summary>
+    public void TriggerMoveAction () {
 		if (playersTurn) {
 			StartCoroutine (TriggerMoveActionCoroutine());
 		}
 	}
 
-	//Object pools used to create the line	
+    /// <summary>
+    /// Coroutine for targeting the players move action and starting the hero's movement
+    /// </summary>
+    /// <returns></returns>
 	IEnumerator TriggerMoveActionCoroutine () {
-		//Disable the UI to avoid mis clicks
-		UIManager.instance.DisableGameUI();
+        //Disable the UI to avoid mis clicks
+		UIManager.instance.DisablePlayerControls();
+
 		actionRunning = true;
 		Vector3 unusedElementOffset = new Vector3(999, 999, 999);
 
@@ -142,7 +204,7 @@ public class PlayerManager : MonoBehaviour {
 		bool stillSearchingForTarget = true;
 
         Vertex target = null;
-        Vertex source = null;
+        Vertex source = selectedHero.MovementController.GraphObstacle.currentVertex;
 		Path path = null;
 		while (stillSearchingForTarget) {
 			#region Path Selection
@@ -150,14 +212,15 @@ public class PlayerManager : MonoBehaviour {
 			RaycastHit rayHit = CameraManager.instance.FrameRayHit;
 			if (rayHit.collider != null && rayHit.collider.CompareTag("Tile")) {
 				//Calculate a path to that tile
-				target = PathManager.instance.GetClosestVertexToCoordinates(PathManager.TranslateWorldSpaceToGraphCoordinates(rayHit.point));
-				source = selectedHero.MovementController.GraphObstacle.CurrentVertex;
-				path = PathManager.instance.FindShortestPathBetween(source, target);
-
-                #region Draw Path
+                if (target != PathManager.instance.GetClosestVertexToCoordinates(PathManager.TranslateWorldSpaceToGraphCoordinates(rayHit.point))) {
+                    target = PathManager.instance.GetClosestVertexToCoordinates(PathManager.TranslateWorldSpaceToGraphCoordinates(rayHit.point));
+                    path = PathManager.instance.FindShortestPathBetween(source, target);
+                }
+                
+                #region Path Drawing
                 if (path != null) {
                     //If the object pool doesn't have enough dots create more
-                    while (lineDots.Count < path.Vertices.Count) {
+                    while (lineDots.Count < path.vertices.Count) {
                         GameObject dotInstance = Instantiate(lineDotPrefab, Vector3.zero, Quaternion.identity);
                         dotInstance.transform.SetParent(GameManager.instance.runtimeObjectsPool.transform);
                         lineDots.Add(dotInstance);
@@ -169,21 +232,21 @@ public class PlayerManager : MonoBehaviour {
                     }
 
                     //Move the required number of dots into position
-                    for (int i = 1; i < path.Vertices.Count - 1; i++) {
-                        lineDots[i - 1].transform.position = path.Vertices[i].WorldPosition;
+                    for (int i = 1; i < path.vertices.Count - 1; i++) {
+                        lineDots[i - 1].transform.position = path.vertices[i].worldPosition;
                     }
 
                     //If the object pool doesn't have enough lines create more
-                    while (lineSegments.Count < path.Vertices.Count) {
+                    while (lineSegments.Count < path.vertices.Count) {
                         GameObject lineInstance = Instantiate(lineSegmentPrefab, Vector3.zero, Quaternion.identity);
                         lineInstance.transform.SetParent(GameManager.instance.runtimeObjectsPool.transform);
                         lineSegments.Add(lineInstance);
                     }
 
                     //Move the line segments into place and rotate in the required direction
-                    for (int i = 0; i < path.Vertices.Count - 1; i++) {
-                        lineSegments[i].transform.position = (path.Vertices[i].WorldPosition + path.Vertices[i + 1].WorldPosition) / 2;
-                        lineSegments[i].transform.forward = (path.Vertices[i + 1].WorldPosition - path.Vertices[i].WorldPosition).normalized;
+                    for (int i = 0; i < path.vertices.Count - 1; i++) {
+                        lineSegments[i].transform.position = (path.vertices[i].worldPosition + path.vertices[i + 1].worldPosition) / 2;
+                        lineSegments[i].transform.forward = (path.vertices[i + 1].worldPosition - path.vertices[i].worldPosition).normalized;
 
                         if ((Mathf.Abs(lineSegments[i].transform.forward.x) < 1f && Mathf.Abs(lineSegments[i].transform.forward.x) > 0f)) {
                             lineSegments[i].transform.localScale = new Vector3(1, 1, 1.5f);
@@ -193,38 +256,43 @@ public class PlayerManager : MonoBehaviour {
                     }
 
                     //Move the rest to an out of game location
-                    for (int j = path.Vertices.Count - 1; j < lineSegments.Count; j++) {
+                    for (int j = path.vertices.Count - 1; j < lineSegments.Count; j++) {
                         lineSegments[j].transform.position = unusedElementOffset;
                     }
 
                     //Move the ground marker to the final vertex in the path
-                    groundMarkerInstance.transform.position = path.Vertices[path.Vertices.Count - 1].WorldPosition;
+                    groundMarkerInstance.transform.position = path.vertices[path.vertices.Count - 1].worldPosition;
 
-                    //Move the UI AP text element
-                    UIManager.instance.UpdateFeetCostText(groundMarkerInstance.transform.position, Mathf.RoundToInt(path.Length));
-                    if (selectedHero.MovementController.CanMoveDistance(path.Length)) {
+                    //Move and update the UI feet text element
+                    if (selectedHero.MovementController.infinityMovement == true) {
+                        UIManager.instance.UpdateFeetCostText(groundMarkerInstance.transform.position, Mathf.RoundToInt(path.length) + 1000);
+                    } else {
+                        UIManager.instance.UpdateFeetCostText(groundMarkerInstance.transform.position, Mathf.RoundToInt(path.length));
+                    }
+                    
+                    if (selectedHero.MovementController.CanMoveDistance(path.length)) {
                         UIManager.instance.SetSpeedCostToValid();
                     } else {
                         UIManager.instance.SetSpeedCostToInvalid();
                     }
                 }
                 #endregion
-
-                #region Execute Path Movement
+                
+                #region Confirm Path Movement
                 //Set the relevent flags depending of which button is pressed
                 if (Input.GetMouseButtonDown(0)) {
-                    if (path != null && selectedHero.MovementController.CanMoveDistance(path.Length)) {
+                    if (path != null && selectedHero.MovementController.CanMoveDistance(path.length)) {
                         stillSearchingForTarget = false;
 
                         //If the characters has the AP required move along the path
                         path = selectedHero.MovementController.CheckForEncounterAndTrimPath(path);
-                        selectedHero.MovementController.MoveCharacter(path, 0f);
+                        selectedHero.MovementController.MoveCharacter(path);
                     }
                 } else if (Input.GetMouseButtonDown(1)) {
                     stillSearchingForTarget = false;
-
                     actionRunning = false;
-                    UIManager.instance.EnableGameUI();
+
+                    UIManager.instance.EnablePlayerControls();
                 }
                 #endregion
 
@@ -234,65 +302,111 @@ public class PlayerManager : MonoBehaviour {
             yield return null;
 		}
 
-		//Move all the line elements to an out of game location
+		//Clear the path overlay
 		Destroy(groundMarkerInstance);
 		for (int j = 0; j < lineDots.Count; j++) {
 			Destroy(lineDots[j]);
 			Destroy(lineSegments[j]);
 		}
+        UIManager.instance.HideFeetCostText();
 
-		//Hide the UI text
-		UIManager.instance.HideFeetCostText();
-	}
+        while (actionRunning) {
+            yield return null;
+        }
 
+        //Check if the character is in enemy territory and trigger their turn if so
+        if (EnemyAIManager.instance.GetAllEncounterVertices().Contains(selectedHero.MovementController.GraphObstacle.currentVertex)) {
+            EnemyAIManager.instance.GetEncounterThatVertexIsPartOf(selectedHero.MovementController.GraphObstacle.currentVertex).encounterActive = true;
+
+            GameManager.instance.EndPlayersTurn();
+        } else {
+            UIManager.instance.EnablePlayerControls();
+
+            if (EnemyAIManager.instance.combatActive == false) {
+                selectedHero.MovementController.ResetDistanceMoved();
+            }
+        }
+        
+
+    }
+
+    /// <summary>
+    /// Trigger the interact action coroutine
+    /// </summary>
 	public void TriggerInteractAction () {
-		if (playersTurn == true && EnemyAIManager.instance.combatActive == false) {
-			StartCoroutine(TriggerInteractActionCoroutine());
+        if (playersTurn == true) {
+            if (EnemyAIManager.instance.combatActive == false) {
+                StartCoroutine(TriggerInteractActionCoroutine());
+            } else {
+                Debug.Log("Cannot use the interaction action while in combat");
+            }
 		}
 	}
 
+    /// <summary>
+    /// Interact coroutine to handle when the player clicks on an interactive object
+    /// </summary>
+    /// <returns></returns>
 	IEnumerator TriggerInteractActionCoroutine () {
-		UIManager.instance.ChangeCursorTo(UIManager.CursorType.INTERACT);
-		UIManager.instance.DisableGameUI();
+		UIManager.instance.DisablePlayerControls();
 		actionRunning = true;
 
 		bool awaitingSelection = true;
-		while (awaitingSelection == true) {
+        IInteractable previousHoverItem = null;
+		while (awaitingSelection) {
 			RaycastHit rayHit = CameraManager.instance.FrameRayHit;
+
+            if (rayHit.collider != null && rayHit.collider.CompareTag("Interactable")) {
+                IInteractable interactableObject = rayHit.collider.GetComponent<IInteractable>();
+                interactableObject.HighlightObject();
+
+                if (previousHoverItem != null && previousHoverItem.Equals(interactableObject) == false) {
+                    previousHoverItem.UnhighlightObject();                    
+                    previousHoverItem = interactableObject;
+                } else {
+                    previousHoverItem = interactableObject;
+                }
+            } else {
+                if (previousHoverItem != null) {
+                    previousHoverItem.UnhighlightObject();
+                }
+            }
+
             if (Input.GetMouseButtonDown(0)) {
                 if (rayHit.collider != null && rayHit.collider.CompareTag("Interactable")) {
-					IInteractable interactableObject = rayHit.collider.GetComponent<IInteractable>();
-					GraphObstacle objectObstacleComponent = rayHit.collider.GetComponent<GraphObstacle>();
-					if (objectObstacleComponent.CurrentVertex.GetNeighbouringVertices().Contains(selectedHero.MovementController.GraphObstacle.CurrentVertex)) {
-						selectedHero.MovementController.LookAtVector(objectObstacleComponent.CurrentVertex.WorldPosition);
-						interactableObject.TriggerInteraction();
-
-                        if (rayHit.collider.GetComponent<NPCController>() != null) {
-                            rayHit.collider.GetComponent<NPCController>().MovementController.LookAtVector(selectedHero.transform.position);
+				    IInteractable interactableObject = rayHit.collider.GetComponent<IInteractable>();
+				    GraphObstacle objectObstacleComponent = rayHit.collider.GetComponent<GraphObstacle>();
+                    NPCController npcController = rayHit.collider.GetComponent<NPCController>();
+                    
+                    //Is the selected hero next to the interactable object
+                    if (objectObstacleComponent.currentVertex.GetNeighbouringVertices().Contains(selectedHero.MovementController.GraphObstacle.currentVertex)) {
+					    selectedHero.MovementController.LookAtVector(objectObstacleComponent.currentVertex.worldPosition);
+                        if (npcController != null) {
+                            npcController.MovementController.LookAtVector(selectedHero.transform.position);
                         }
 
-						awaitingSelection = false;
-					}
-				}
-			} else if (Input.GetMouseButtonDown(1)) {
+                        interactableObject.TriggerInteraction();
+
+					    awaitingSelection = false;
+				    }
+
+                    if (previousHoverItem != null) {
+                        previousHoverItem.UnhighlightObject();
+                    }
+                }                
+            } else if (Input.GetMouseButtonDown(1)) {
 				awaitingSelection = false;
-				actionRunning = false;
-			}
+
+                if (previousHoverItem != null) {
+                    previousHoverItem.UnhighlightObject();
+                }
+            }
 
 			yield return null;
 		}
 
-
-		UIManager.instance.ChangeCursorTo(UIManager.CursorType.DEFAULT);
-		UIManager.instance.EnableGameUI();
-        UIManager.instance.DisableEndTurnButton();
+		UIManager.instance.EnablePlayerControls();
 		actionRunning = false;
 	}
-
-	//-----GIZMOS-----
-	public bool drawGizmos;
-	void OnDrawGizmos () {
-		
-	}
-
+    
 }

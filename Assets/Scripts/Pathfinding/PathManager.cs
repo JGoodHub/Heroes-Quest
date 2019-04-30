@@ -19,24 +19,20 @@ public class PathManager : MonoBehaviour {
 
     //-----VARIABLES-----
 
-    //The graph representing the map
     private List<Graph> graphs = new List<Graph>();
-    public List<Graph> Graphs {
-        get { return this.graphs; }
-    }
 
     private HashSet<Vertex> interGraphVertices = new HashSet<Vertex>();
     private Dictionary<Vector2Int, Vertex> globalVertexDictionary = new Dictionary<Vector2Int, Vertex>();
 
-    private GraphObstacle[] graphObstacles;
-
     //-----METHODS-----
 
-    //Setup method
+    /// <summary>
+    /// Setup method to initialise the PathManager object
+    /// </summary>
     public void Initialise () {
         globalVertexDictionary.Clear();
         foreach (Vertex v in GetAllVerticesInScene()) {
-            globalVertexDictionary.Add(v.GraphCoordinates, v);
+            globalVertexDictionary.Add(v.graphCoordinates, v);
         }
 
 		//Block all obstacle vertices on the graph
@@ -55,7 +51,11 @@ public class PathManager : MonoBehaviour {
 		}
     }
 
-    //Create a graph from the tile grid
+    /// <summary>
+    /// Creates a graph from a 2D array of tile game objects
+    /// </summary>
+    /// <param name="tileObjectGrid">2D Array of tile game objects</param>
+    /// <returns>A Graph representing the walkable spaces in the tile grid</returns>
     public Graph AddGraphFromTileGrid (GameObject[,] tileObjectGrid) {
         //The new graph object
         Graph graph = new Graph();
@@ -100,7 +100,7 @@ public class PathManager : MonoBehaviour {
                     //Create a new vertex and add it to the graph
                     Vertex newVertex = new Vertex(new Vector2Int (x, z), graph);
                     newVertex.SetWorldPosition(TranslateGraphCoordinatesToWorldSpace(new Vector2Int(x, z), ((graphs.Count - 1) * 10) + walkableMap[x, z]));
-                    graph.Vertices.Add(newVertex);
+                    graph.vertices.Add(newVertex);
                     newVertex.parentGraph = graph;
 
                     if (walkableMap[x, z] >= 10) {
@@ -108,8 +108,8 @@ public class PathManager : MonoBehaviour {
                     }
 
                     foreach (Vertex vertex in GetAllVerticesInScene()) {
-                        if (globalVertexDictionary.ContainsKey(vertex.GraphCoordinates) == false) {
-                            globalVertexDictionary.Add(newVertex.GraphCoordinates, newVertex);
+                        if (globalVertexDictionary.ContainsKey(vertex.graphCoordinates) == false) {
+                            globalVertexDictionary.Add(newVertex.graphCoordinates, newVertex);
                         }
                     }
 
@@ -119,7 +119,7 @@ public class PathManager : MonoBehaviour {
                             //Check if the offset path map space is walkable and create and edge between it and the current vertex
                             if (walkableMap[x + xOffset, z - 1] >= 0) {
                                 Edge e = new Edge(newVertex, GetClosestVertexToCoordinates(new Vector2Int(x + xOffset, z - 1)));
-                                graph.Edges.Add(e);
+                                graph.edges.Add(e);
                                 e.parentGraph = graph;
                             }
                         }
@@ -128,7 +128,7 @@ public class PathManager : MonoBehaviour {
                     //Create an edge to the vertex left of the current one
                     if (x > 0 && walkableMap[x - 1, z] >= 0) {
                         Edge newEdge = new Edge(newVertex, GetClosestVertexToCoordinates(new Vector2Int(x - 1, z)));
-                        graph.Edges.Add(newEdge);
+                        graph.edges.Add(newEdge);
                         newEdge.parentGraph = graph;
                     }
                 }
@@ -136,58 +136,77 @@ public class PathManager : MonoBehaviour {
         }
 
         //Calculate the normalised weights for each of the edges, then times by 5 to represent 5 feet per tile
-        foreach (Edge edge in graph.Edges) {
-            edge.weight = Vector2Int.Distance(edge.Vertices[0].GraphCoordinates, edge.Vertices[1].GraphCoordinates) * 5f;
+        foreach (Edge edge in graph.edges) {
+            edge.weight = Vector2Int.Distance(edge.vertices[0].graphCoordinates, edge.vertices[1].graphCoordinates) * 5f;
         }
         #endregion
         
         return graph;
     }
 
+    /// <summary>
+    /// Connects the different level graphs using the inter graph vertices on certain tiles
+    /// </summary>
     public void FormInterGraphEdges () {
         foreach (Vertex v in interGraphVertices) {
-            Graph targetGraph = GetClosestGraphToYPosition(v.WorldPosition.y);
+            Graph targetGraph = GetClosestGraphToYPosition(v.worldPosition.y);
             foreach (Vertex adjV in GetVerticesInRange(v, 1.5f, false)) {
                 Edge e = new Edge(v, adjV);
-                e.weight = Vector2Int.Distance(v.GraphCoordinates, adjV.GraphCoordinates) * 5f;
-                targetGraph.Edges.Add(e);
+                e.weight = Vector2Int.Distance(v.graphCoordinates, adjV.graphCoordinates) * 5f;
+                targetGraph.edges.Add(e);
                 e.parentGraph = targetGraph;                         
             }
             
             HashSet<Edge> edgesToRemove = new HashSet<Edge>();
-            foreach (Edge e in v.IncidentEdges) {
+            foreach (Edge e in v.incidentEdges) {
                 if (e.weight > 5) {
                     edgesToRemove.Add(e);
                 }
             }
 
             foreach (Edge edge in edgesToRemove) {
-                edge.Vertices[0].IncidentEdges.Remove(edge);
-                edge.Vertices[1].IncidentEdges.Remove(edge);
-                edge.parentGraph.Edges.Remove(edge);
+                edge.vertices[0].incidentEdges.Remove(edge);
+                edge.vertices[1].incidentEdges.Remove(edge);
+                edge.parentGraph.edges.Remove(edge);
             }
         }
     }
 
+    /// <summary>
+    /// Converts graph coordinates into world space coordinates
+    /// </summary>
+    /// <param name="coordinates">The graph coordinates to convert</param>
+    /// <param name="yOffset">Y offset to set for the resulting Vector3</param>
+    /// <returns>Vector3 representing the coordinate in world space</returns>
     public static Vector3 TranslateGraphCoordinatesToWorldSpace (Vector2Int coordinates, float yOffset) {
         return new Vector3(coordinates.x * 5f, yOffset, -coordinates.y * 5f);
     }
 
+    /// <summary>
+    /// Converts world space coordinates into graph coordinates
+    /// </summary>
+    /// <param name="worldPos">The world position to convert</param>
+    /// <returns>A Vector2Int representing the x and y graph coordinates</returns>
     public static Vector2Int TranslateWorldSpaceToGraphCoordinates (Vector3 worldPos) {
         return new Vector2Int(Mathf.RoundToInt(worldPos.x / 5f), Mathf.RoundToInt(-worldPos.z / 5f));
     }
 
-    //Find the closest vertex to the coordinates passed
+    /// <summary>
+    /// Find the closest vertex to the coordinates passed
+    /// </summary>
+    /// <param name="coordinates">Coordinates to search from</param>
+    /// <returns>The nearest Vertex to the coordinates passed</returns>
     public Vertex GetClosestVertexToCoordinates (Vector2Int coordinates) {
         Vertex closestVertex = null;
         float closestDistance = 0;
 
+        //Return the Vertex as the coordinate position
         if (globalVertexDictionary.ContainsKey(coordinates)) {
             return globalVertexDictionary[coordinates];
         } else {
             //Test each vertex and return the one that's the least distance away
             foreach (Vertex vertex in globalVertexDictionary.Values) {
-                float newDist = Vector2.Distance(coordinates, vertex.GraphCoordinates);
+                float newDist = Vector2.Distance(coordinates, vertex.graphCoordinates);
                 if (closestVertex == null || newDist < closestDistance) {
                     closestVertex = vertex;
                     closestDistance = newDist;
@@ -198,18 +217,29 @@ public class PathManager : MonoBehaviour {
         }
     }
 
-
+    /// <summary>
+    /// Find the closest level graph to a given Y value
+    /// </summary>
+    /// <param name="yPosition">The Y value to search</param>
+    /// <returns>The nearest Graph to the Y value</returns>
     public Graph GetClosestGraphToYPosition (float yPosition) {
         int graphIndex = Mathf.RoundToInt(Mathf.Clamp(yPosition / 10f, 0f, graphs.Count - 1));
 
         return graphs[graphIndex];
     }
     
+    /// <summary>
+    /// Get all the vertices within the Euclidean range of the start Vertex's coordinates
+    /// </summary>
+    /// <param name="start">The starting Vertex to search from</param>
+    /// <param name="range">The distance range to check in</param>
+    /// <param name="includeStart">Boolean of whether the start Vertex should be included in the returned collection</param>
+    /// <returns>A HashSet of vertices containing all vertices within range of the start</returns>
     public HashSet<Vertex> GetVerticesInRange (Vertex start, float range, bool includeStart) {
 		HashSet<Vertex> verticesWithinRange = new HashSet<Vertex>();
 
         foreach (Vertex v in globalVertexDictionary.Values) {
-            if (Vector2Int.Distance(start.GraphCoordinates, v.GraphCoordinates) <= range) {
+            if (Vector2Int.Distance(start.graphCoordinates, v.graphCoordinates) <= range) {
                 verticesWithinRange.Add(v);
             }
         }
@@ -221,15 +251,24 @@ public class PathManager : MonoBehaviour {
 		return verticesWithinRange;
 	}
 
+    /// <summary>
+    /// Get all vertices across all graphs
+    /// </summary>
+    /// <returns>A collection containing all vertices in the scene</returns>
     public HashSet<Vertex> GetAllVerticesInScene () {
         HashSet<Vertex> vertexCollection = new HashSet<Vertex>();
         foreach (Graph g in graphs) {
-            vertexCollection.UnionWith(g.Vertices);
+            vertexCollection.UnionWith(g.vertices);
         }
         return vertexCollection;
     }
 
-    //A* Dijkstra's Shortest Path Algorithm
+    /// <summary>
+    /// Calculate the shortest weighted path between a source and target vertex using the A* search algorithm
+    /// </summary>
+    /// <param name="source">The source Vertex</param>
+    /// <param name="target">the target Vertex</param>
+    /// <returns>A Path object representing the shortest path or null if no path exists</returns>
     public Path FindShortestPathBetween (Vertex source, Vertex target) {
         //Check that the prerequisites of the algorithm are not null 
         if (graphs == null || source == null || target == null) {
@@ -258,7 +297,7 @@ public class PathManager : MonoBehaviour {
             foreach (Vertex vertex in globalVertexDictionary.Values) {
                 if (vertex == source || vertex == target || vertex.blocked == false) {
                     edgeDist.Add(vertex, 1000000);
-                    euclideanDist.Add(vertex, Vector2Int.Distance(vertex.GraphCoordinates, target.GraphCoordinates));                
+                    euclideanDist.Add(vertex, Vector2Int.Distance(vertex.graphCoordinates, target.graphCoordinates));                
                     unexploredVertices.Add(vertex);
                 }             
             }
@@ -276,13 +315,15 @@ public class PathManager : MonoBehaviour {
                     }
                 }
 
+                //Performence TODO ^, try checking the vertices disocvered on the last loop rather than searching through every vertex to find the best ^
+
                 unexploredVertices.Remove(currentVertex);
 
                 //Iterate through each vertex that shares an edge with the current one
                 //Calculate the distance of the neighbour vertex when going through the current one
                 //If this new path is shorter set the current vertex as the previous one in the 
                 //shortest path to the neighbour
-                foreach (Edge edgeToNeighbour in currentVertex.IncidentEdges) {                    
+                foreach (Edge edgeToNeighbour in currentVertex.incidentEdges) {
                     Vertex neighbourVertex = edgeToNeighbour.GetOppositeVertex(currentVertex);
                     if (neighbourVertex == target || neighbourVertex.blocked == false) {
                         float alternatePathToNeighbour = edgeDist[currentVertex] + edgeToNeighbour.weight;
@@ -301,12 +342,12 @@ public class PathManager : MonoBehaviour {
             if (currentVertex == target) {
                 //Backtrack using the previousVertexInPath to find the shortest path from target to source
                 while (currentVertex != source && previousVertexInPath.ContainsKey(currentVertex)) {
-                    path.Vertices.Insert(0, currentVertex);
+                    path.vertices.Insert(0, currentVertex);
                     currentVertex = previousVertexInPath[currentVertex];
                 }
 
                 if (currentVertex == source) {
-                    path.Vertices.Insert(0, source);
+                    path.vertices.Insert(0, source);
                                         
                     //If the final vertex is blocked, remove it from the path
                     if (target.blocked == true) {
@@ -328,28 +369,32 @@ public class PathManager : MonoBehaviour {
 
     //-----GIZMOS-----
     [Header("Gizmo Toggles")]
-    public bool drawGizmos;
     public bool drawVertices;
     public bool drawEdges;
+    /// <summary>
+    /// Draw the path managers graphs as gizmos in the editor window
+    /// </summary>
     void OnDrawGizmos () {
         Gizmos.color = Color.white;
-        if (drawGizmos && Application.isPlaying) {
+        if (Application.isPlaying) {
             for (int i = 0; i < graphs.Count; i++) {
                 Vector3 yOffset = new Vector3(0f, 0.1f, 0f);
 
-                if (drawVertices) {
-                    foreach (Vertex v in graphs[i].Vertices) {
-                        Gizmos.DrawCube(v.WorldPosition + yOffset, Vector3.one * 0.5f);
-                    }
+                if (drawEdges) {
+                    Gizmos.color = Color.blue;
+                    foreach (Edge e in graphs[i].edges) {
+                        Gizmos.DrawLine(e.vertices[0].worldPosition + yOffset, e.vertices[1].worldPosition + yOffset);
+                    }               
                 }
 
-                if (drawEdges) {
-                    Gizmos.color = Color.cyan;
-                    foreach (Edge e in graphs[i].Edges) {
-                        Gizmos.DrawLine(e.Vertices[0].WorldPosition + yOffset, e.Vertices[1].WorldPosition + yOffset);
-                    }               
-                }  
-            }   
+                if (drawVertices) {
+                    Gizmos.color = Color.red;
+                    foreach (Vertex v in graphs[i].vertices) {
+                        Gizmos.DrawCube(v.worldPosition + yOffset, Vector3.one * 0.5f);
+                    }
+                }
+            }
         }
     }
+
 }

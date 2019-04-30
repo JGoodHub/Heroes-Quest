@@ -20,21 +20,28 @@ public class QuestManager : MonoBehaviour {
 
     public string startingQuestName;
 
-    [HideInInspector]
     public QuestComponent activeQuest;
 
     //-----METHODS-----
 
+    /// <summary>
+    /// Sets up the quest collection and starts the demo quest
+    /// </summary>
     public void Initialise () {
-        QuestBook.instance.Initialise();
+        QuestCollection.instance.Initialise();
 
         activeQuest = GetQuestUsingName(startingQuestName);
         activeQuest.StartQuest();
     }
 
+    /// <summary>
+    /// Find a quest by a given name
+    /// </summary>
+    /// <param name="questTitle">The quest to search for</param>
+    /// <returns>The Quest Component associated with the name</returns>
     public QuestComponent GetQuestUsingName (string questTitle) {
         QuestComponent tempComponent = null;
-        foreach (QuestComponent questComp in QuestBook.Quests) {
+        foreach (QuestComponent questComp in QuestCollection.quests) {
             if (questComp.title.ToLower() == questTitle.ToLower()) {
                 if (tempComponent != null) {
                     Debug.LogError("MULTIPLE QUESTS WITH THE SAME TITLE DETECTED");

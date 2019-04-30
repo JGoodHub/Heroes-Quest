@@ -14,9 +14,6 @@ public class QuestObjective : MonoBehaviour {
 
     //-----VARIABLES-----
 
-    //public string[] triggerQuestNames;
-    //private int triggerState = 0;
-
     public QuestTrigger[] questTriggers;
 
     public string[] handInQuestNames;
@@ -26,42 +23,17 @@ public class QuestObjective : MonoBehaviour {
 	//-----METHODS-----
 	
     /// <summary>
-    /// 
-    /// </summary>
-	public void Initialise () {
-		
-	}
-
-    /// <summary>
-    /// 
+    /// Triggers the next quest once this objective is complete
     /// </summary>
     /// <returns></returns>
     public QuestComponent TriggerNextQuest() {
-        /*
-        if (triggerState < triggerQuestNames.Length) {
-            QuestComponent linkedComp = QuestManager.instance.SearchForQuest(triggerQuestNames[triggerState]);
-            if (linkedComp != null && QuestManager.instance.activeQuest.outQuests.Contains(linkedComp)) {
-                triggerState++;
-                return linkedComp;
-            } else {
-                if (linkedComp == null) {
-                    Debug.LogError("No matching quest with the same title could be found, check spelling of trigger quest");
-                } else {
-                    Debug.Log("Player trying to activate next quest before completeing its previous one");
-                }
-                return null;
-            }
-        } else {
-            return null;
-        }
-        */
-
         foreach (QuestTrigger trigger in questTriggers) {
             if (trigger.sourceQuestName == QuestManager.instance.activeQuest.title) {
                 QuestComponent nextQuest = QuestManager.instance.GetQuestUsingName(trigger.triggerQuestName);
                 if (nextQuest == null) {
                     Debug.LogError("No matching quest with the same title could be found, check spelling of trigger quest");
                 } else {
+                    nextQuest.StartQuest();
                     return nextQuest;
                 }
             }
@@ -71,7 +43,7 @@ public class QuestObjective : MonoBehaviour {
     }
 
     /// <summary>
-    /// 
+    /// Check if this is the finishing point for the current quest
     /// </summary>
     /// <returns></returns>
     public bool IsHandInPointForActiveQuest () {
@@ -82,13 +54,5 @@ public class QuestObjective : MonoBehaviour {
         }
 
         return false;
-    }
-
-	
-	//-----GIZMOS-----
-	//public bool drawGizmos;
-	void OnDrawGizmos() {
-	
-	}
-	
+    }	
 }

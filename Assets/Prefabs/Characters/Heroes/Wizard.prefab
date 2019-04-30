@@ -141,7 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58dbf0c2918c44941b7f2bbd72a3e6cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionRing: {fileID: 6326401735992885693}
+  selectionHightlight: {fileID: 4089507208156854497}
   abilityIDs:
   - Medium Fireball
 --- !u!114 &8387060449011820678
@@ -156,10 +156,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 42b98623bdfa5ef42a2160477f398956, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterName: Merlin
+  characterName: Blue Mage
   maxHealth: 15
-  maxMana: 25
-  maxActionPoints: 3
+  maxMana: 30
+  actionAvailable: 1
   characterController: {fileID: 0}
 --- !u!114 &5083417526717411451
 MonoBehaviour:
@@ -175,6 +175,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speedInFeet: 40
   lockedDown: 0
+  infinityMovement: 1
 --- !u!114 &124359829295182919
 MonoBehaviour:
   m_ObjectHideFlags: 0

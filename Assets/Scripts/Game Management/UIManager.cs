@@ -16,10 +16,7 @@ public class UIManager : MonoBehaviour {
 			Destroy(gameObject);
 		}
 	}
-
-    //-----ENUMS-----
-
-    public enum CursorType {DEFAULT, MOVE, INTERACT, SPEACH};
+    
 
     //-----VARIABLES-----
 
@@ -33,7 +30,7 @@ public class UIManager : MonoBehaviour {
 	public Text healthBarText;
 	public Image manaBarFill;
 	public Text manaBarText;
-	public Image actionPointsFill;
+	public GameObject actionPointsFill;
 	public Image experienceBarFill;
 
 	[Header("Enemy Status Bar UI Elements")]
@@ -44,6 +41,7 @@ public class UIManager : MonoBehaviour {
 
 	[Header("Turn Management UI Elements")]
 	public Button endTurnButton;
+    public GameObject endTurnButtonObject;
 
     [Header("Action Button UI Elements")]
     public Button[] actionButtons;
@@ -61,14 +59,16 @@ public class UIManager : MonoBehaviour {
     public GameObject speechInteractionWindow;
     public Text speechInteractionText;
 
+    [Header("Display Message Elements")]
+    public Text messageText;
+
 	[Header("Tile Editor UI Elements")]
 	public GameObject tileEditorWindow;
 
     //-----METHODS-----
 
-	//Setup Method
     /// <summary>
-    /// 
+    /// Pre hide the appropriate UI elements
     /// </summary>
 	public void Initialise () {
 		mainCamera = Camera.main;
@@ -77,49 +77,39 @@ public class UIManager : MonoBehaviour {
         HideSpeechChat();
 	}
 
-	//Change the users cursor to the type parsed
     /// <summary>
-    /// 
+    /// Show the UI
     /// </summary>
-    /// <param name="type"></param>
-    public void ChangeCursorTo (CursorType type) {
-        //TODO
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-	public void UnhideUI () {
+	public void ShowUI () {
 		uiRootCanvas.enabled = true;
 	}
 
     /// <summary>
-    /// 
+    /// Hide the UI
     /// </summary>
 	public void HideUI () {
 		uiRootCanvas.enabled = false;
 	}
 
     /// <summary>
-    /// 
+    /// Set the UI to editor mode
     /// </summary>
 	public void SetToTileEditorMode () {
-		DisableGameUI();
+		DisablePlayerControls();
 		tileEditorWindow.SetActive(true);
 	}
 
     /// <summary>
-    /// 
+    /// Set the UI to game mode
     /// </summary>
 	public void SetToGameMode () {
 		tileEditorWindow.SetActive(false);
 	}
 
-	//Update the health, mana and action points to that of the selected hero
     /// <summary>
-    /// 
+    /// Update the health, mana and action points to that of the selected hero
     /// </summary>
-	public void UpdateHeroStatusBar () {
+    public void UpdateHeroStatusBar () {
 		//Get the current selected hero
 		CharacterData heroData = PlayerManager.instance.SelectedHero.CharacterData;
 
@@ -131,19 +121,21 @@ public class UIManager : MonoBehaviour {
 		manaBarFill.fillAmount = (float) heroData.GetResourceOfType(ResourceType.MANA) / heroData.maxMana;
 		manaBarText.text = heroData.GetResourceOfType(ResourceType.MANA) + "/" + heroData.maxMana;
 
-		//Update the action points
-		actionPointsFill.fillAmount = (float) heroData.GetResourceOfType(ResourceType.ACTIONPOINTS) / heroData.maxActionPoints;
-
+        if (heroData.actionAvailable) {
+            EnableActionPoint();
+        } else {
+            DisableActionPoint();
+        }
+        
 		//Update the experience bar
-		experienceBarFill.fillAmount = (float) heroData.Experience / heroData.LevelToExperience(heroData.Level + 1);
+		experienceBarFill.fillAmount = (float) heroData.experience / heroData.LevelToExperience(heroData.level + 1);
 	}
 
-	//Unhide and update the enemies status bar
     /// <summary>
-    /// 
+    /// Show and update the enemies status bar
     /// </summary>
-    /// <param name="enemyController"></param>
-	public void ShowStatusBarForEnemy (CharacterController enemyController) {
+    /// <param name="enemyController">The enemy to display</param>
+    public void ShowStatusBarForEnemy (CharacterController enemyController) {
 		//Get the enemy to display
 		CharacterData enemyData = enemyController.CharacterData;
 
@@ -152,135 +144,146 @@ public class UIManager : MonoBehaviour {
 
 		//Update to the new enemies data
 		enemyName.text = enemyData.characterName;
-		enemyHealthBarFill.fillAmount = (float) enemyData.GetResourceOfType(ResourceType.HEALTH) / enemyData.maxHealth;
-		enemyHealthBarText.text = enemyData.GetResourceOfType(ResourceType.HEALTH) + "/" + enemyData.maxHealth;
-	}
+        float healthPercentage = (float) enemyData.GetResourceOfType(ResourceType.HEALTH) / enemyData.maxHealth;      
+        
+        if (healthPercentage > 0f) {
+            enemyHealthBarText.text = "Brutalised";
+        }
 
-	//Hide the enemies status bar
+        if (healthPercentage >= 0.25f) {
+            enemyHealthBarText.text = "Blooided";
+        }
+
+        if (healthPercentage >= 0.5f) {
+            enemyHealthBarText.text = "Injured";
+        }
+
+        if (healthPercentage >= 0.75f) {
+            enemyHealthBarText.text = "Hurt Feelings";
+        }
+
+        if (healthPercentage >= 1f) {
+            enemyHealthBarText.text = "Unharmed";
+        }
+
+    }
+
     /// <summary>
-    /// 
+    /// Hide the enemies status bar
     /// </summary>
-	public void HideEnemyStatusBar () {
+    public void HideEnemyStatusBar () {
 		enemyBarWindow.SetActive(false);
 	}
 
-	//Make the end turn button interactable
     /// <summary>
-    /// 
+    /// Enable the action point
+    /// </summary>
+    public void EnableActionPoint () {
+        actionPointsFill.SetActive(true);
+    }
+
+    /// <summary>
+    /// Disable the action point
+    /// </summary>
+    public void DisableActionPoint () {
+        actionPointsFill.SetActive(false);
+    }
+
+    /// <summary>
+    /// Enable the end turn button
     /// </summary>
 	public void EnableEndTurnButton () {
-		endTurnButton.interactable = true;
-	}
+        endTurnButton.interactable = true;
+    }
 
-	//Make the end turn button interactable
     /// <summary>
-    /// 
+    /// Disable the end turn button
     /// </summary>
-	public void DisableEndTurnButton () {
-		endTurnButton.interactable = false;
-	}
+    public void DisableEndTurnButton () {
+        endTurnButton.interactable = false;
+    }
 
-	//Enable the ability buttons
     /// <summary>
-    /// 
+    /// Show the end turn button
     /// </summary>
-	public void EnableAbilityButtons () {
+    public void ShowEndTurnButton () {
+        endTurnButtonObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Hide the end turn button
+    /// </summary>
+    public void HideEndTurnButton() {
+        endTurnButtonObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Enable the player controls
+    /// </summary>
+    public void EnablePlayerControls () {
         foreach (Button button in abilityButtons) {
             button.interactable = true;
         }
+
+        foreach (Button button in actionButtons) {
+            button.interactable = true;
+        }
 	}
 
-	//Disable the ability buttons
     /// <summary>
-    /// 
+    /// Disable the player controls
     /// </summary>
-	public void DisableAbilityButtons () {
+	public void DisablePlayerControls () {
         foreach (Button button in abilityButtons) {
             button.interactable = false;
         }
-	}
 
-	//Enable the move action button
-    /// <summary>
-    /// 
-    /// </summary>
-	public void EnableActionButton () {
-        foreach (Button button in actionButtons) {
-            button.interactable = true;
-        }	
-	}
-
-	//Disable the move action button
-    /// <summary>
-    /// 
-    /// </summary>
-	public void DisableActionButton () {
         foreach (Button button in actionButtons) {
             button.interactable = false;
         }
-	}
+    }
 
-	//Activate the UI
     /// <summary>
-    /// 
+    /// Update the position and text of the feet cost text
     /// </summary>
-	public void EnableGameUI () {
-		EnableEndTurnButton();
-		EnableAbilityButtons();
-        EnableActionButton();
-	}
-
-	//Deactivate the UI
-    /// <summary>
-    /// 
-    /// </summary>
-	public void DisableGameUI () {
-		DisableEndTurnButton();
-		DisableAbilityButtons();
-        DisableActionButton();
-	}
-
-	//Update the position and text of the AP cost text
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="newWorldPosition"></param>
-    /// <param name="newValue"></param>
-	public void UpdateFeetCostText (Vector3 newWorldPosition, int newValue) {
+    /// <param name="newWorldPosition">The world position to hover over</param>
+    /// <param name="newValue">The new vale of the feet text</param>
+    public void UpdateFeetCostText (Vector3 newWorldPosition, int newValue) {
 		actionPointsText.gameObject.SetActive(true);
-		actionPointsText.text = newValue + "/" + PlayerManager.instance.SelectedHero.MovementController.speedInFeet + " ft";
-		actionPointsText.rectTransform.position = mainCamera.WorldToScreenPoint(newWorldPosition);		
-	}
+        actionPointsText.rectTransform.position = mainCamera.WorldToScreenPoint(newWorldPosition);
 
-	//Hide the AP cost Text
+        if (newValue >= 1000) {
+            actionPointsText.text = (newValue - 1000) + "/∞ ft";
+        } else {
+            actionPointsText.text = newValue + "/" + PlayerManager.instance.SelectedHero.MovementController.speedInFeet + " ft";
+        }
+    }
+
     /// <summary>
-    /// 
+    /// Hid the feet text
     /// </summary>
 	public void HideFeetCostText () {
 		actionPointsText.gameObject.SetActive(false);
 	}
 
-	//Changes the colour of the Ap text to black
     /// <summary>
-    /// 
+    /// Change the colour of the feet text to black, valid
     /// </summary>
 	public void SetSpeedCostToValid () {
 		actionPointsText.color = Color.black;
 	}
 
-	//Changes the colour of the Ap text to red
     /// <summary>
-    /// 
+    /// Change the colour of the feet text to red, invalid
     /// </summary>
 	public void SetSpeedCostToInvalid () {
 		actionPointsText.color = Color.red;
 	}
 
-	//Update the status of the current quest
     /// <summary>
-    /// 
+    /// Update the status of the current quest
     /// </summary>
-	public void UpdateQuestStatus () {
+    public void UpdateQuestStatus () {
 		QuestComponent questComp = QuestManager.instance.activeQuest;
         if (questComp == null) {
             questTitleText.text = "";
@@ -293,28 +296,89 @@ public class UIManager : MonoBehaviour {
         }
 	}
 
-    public void ShowSpeechChat (string characterName, string speechText) {
-        speechInteractionWindow.SetActive(true);        
+    IEnumerator speechCoroutine = null;
 
-        StartCoroutine(SpeechChatCoroutine(characterName, speechText));
+    /// <summary>
+    /// Show the NPC speech chat element
+    /// </summary>
+    /// <param name="characterName">The name of the NPC</param>
+    /// <param name="speechText">The NPC's text</param>
+    public void ShowSpeechChat (string characterName, string speechText) {
+        speechInteractionWindow.SetActive(true);
+        speechCoroutine = SpeechChatCoroutine(characterName, speechText);
+
+        StartCoroutine(speechCoroutine);
     }
 
+    /// <summary>
+    /// Write the speech text to the speech window
+    /// </summary>
+    /// <param name="characterName">NPC name</param>
+    /// <param name="speechText">NPC's text</param>
+    /// <returns></returns>
     IEnumerator SpeechChatCoroutine (string characterName, string speechText) {
         int charPtr = 0;
         speechInteractionText.text = characterName + ":\n\"";
+
+        bool inDotSequence = false;
         while (charPtr < speechText.Length) {
-            DisableGameUI();
+            DisablePlayerControls();
             speechInteractionText.text += speechText[charPtr];
             charPtr++;
-            yield return new WaitForSeconds(0.025f);
+
+            if (charPtr < speechText.Length - 1) {
+                if (speechText[charPtr] == '.' && speechText[charPtr + 1] == '.' || inDotSequence) {
+                    inDotSequence = true;
+                    yield return new WaitForSeconds(1f);
+                } else {
+                    yield return new WaitForSeconds(0.04f);
+                }
+
+                if (speechText[charPtr] != '.') {
+                    inDotSequence = false;
+                }
+            }            
         }
 
         speechInteractionText.text += "\"";
+        speechCoroutine = null;
     }
 
+    /// <summary>
+    /// Hide the speech window
+    /// </summary>
     public void HideSpeechChat() {
         speechInteractionWindow.SetActive(false);
-        EnableGameUI();
+        if (speechCoroutine != null) {
+            StopCoroutine(speechCoroutine);
+            speechCoroutine = null;
+        }
+
+        EnablePlayerControls();
+    }
+
+    /// <summary>
+    /// Display a message on the screen
+    /// </summary>
+    /// <param name="message">The message to be displayed</param>
+    /// <param name="textColour">The colour of the text</param>
+    /// <param name="messageDuration">How long to display it for</param>
+    public void DisplayMessage (string message, Color textColour, float messageDuration) {
+        StartCoroutine(DisplayMessageCoroutine(message, textColour, messageDuration));
+    }
+
+    /// <summary>
+    /// Hid the message after several seconds
+    /// </summary>
+    /// <param name="message">The message to be displayed</param>
+    /// <param name="textColour">The colour of the text</param>
+    /// <param name="messageDuration">How long to display it for</param>
+    /// <returns></returns>
+    IEnumerator DisplayMessageCoroutine (string message, Color textColour, float messageDuration) {
+        messageText.text = message;
+        messageText.color = textColour;
+        yield return new WaitForSeconds(messageDuration);
+        messageText.text = "";
     }
 
 }

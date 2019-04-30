@@ -26,12 +26,39 @@ public class LightingManager : MonoBehaviour {
     [Range(0, 24)]
     public float manualPositionControl;
 
+    private HashSet<ParticleSystem> lightParticleSystems;
+    private HashSet<Light> lightSources;
+
     //-----METHODS-----    
 
+    /// <summary>
+    /// Setup the manager and get references to all dynamic light sources in the world
+    /// </summary>
     public void Initialise () {
         degreesPerSecond = 360f / (dayLengthInMinutes * 60);
+
+        lightParticleSystems = new HashSet<ParticleSystem>();
+        lightSources = new HashSet<Light>();
+
+        foreach(GameObject obj in GameObject.FindGameObjectsWithTag("World Light")) {
+            ParticleSystem lightParticle = obj.GetComponent<ParticleSystem>();
+            Light lightSource = obj.GetComponent<Light>();
+
+            if (lightParticle != null) {
+                lightParticle.Stop();
+                lightParticleSystems.Add(lightParticle);
+            }
+
+            if (lightSource != null) {
+                lightSource.gameObject.SetActive(false);
+                lightSources.Add(lightSource);
+            }
+        }
     }
 
+    /// <summary>
+    /// Rotates the sun over the course of the time period specified
+    /// </summary>
     void Update() {
         if (pauseCycle == false) {
             sunPivot.Rotate(Vector3.up, degreesPerSecond * Time.deltaTime);

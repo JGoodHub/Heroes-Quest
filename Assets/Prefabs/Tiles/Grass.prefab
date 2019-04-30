@@ -211,8 +211,8 @@ MonoBehaviour:
   tileDisplacements: []
   startNodeIndex: 0
   endNodeIndex: 0
-  drawGizmos: 0
+  tileInstanceID: 0
   drawConnectorNodes: 0
-  drawWalkableToggles: 1
+  drawWalkableToggles: 0
   drawTileDirection: 0
   drawTileBounds: 0

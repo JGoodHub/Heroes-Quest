@@ -9,6 +9,7 @@ TagManager:
   - Enemy
   - NPC
   - Interactable
+  - World Light
   layers:
   - Default
   - TransparentFX

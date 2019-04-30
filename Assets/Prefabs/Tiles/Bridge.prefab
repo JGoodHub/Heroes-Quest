@@ -54,20 +54,16 @@ MonoBehaviour:
   gridB: 0
   gridC: 1
   gridD: 1
-  tileDisplacements:
-  - spaceID: 67
-    verticalDisplacement: 0.8
-    interGraphVertex: 0
-  - spaceID: 68
-    verticalDisplacement: 0.8
-    interGraphVertex: 0
+  tileDisplacements: []
   startNodeIndex: 0
   endNodeIndex: 2
+  gridX: 0
+  gridY: 0
+  tileMapLevel: 0
   tileInstanceID: 0
-  drawGizmos: 1
-  drawConnectorNodes: 1
-  drawWalkableToggles: 1
-  drawTileDirection: 1
+  drawConnectorNodes: 0
+  drawWalkableToggles: 0
+  drawTileDirection: 0
   drawTileBounds: 0
 --- !u!1 &7326533990645566276
 GameObject:
@@ -95,7 +91,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7326533990645566276}
   m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 1.52, z: 0}
+  m_LocalPosition: {x: 0, y: 0.72, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 8245448188094796951}
@@ -226,7 +222,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 3dd5582151f89aa4c8e15df10688cb9b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.77
       objectReference: {fileID: 0}
     - target: {fileID: 400000, guid: 3dd5582151f89aa4c8e15df10688cb9b, type: 3}
       propertyPath: m_LocalPosition.z

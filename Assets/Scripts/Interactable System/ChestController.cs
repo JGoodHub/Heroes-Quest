@@ -8,26 +8,41 @@ public class ChestController : MonoBehaviour, IInteractable {
 
     private Animator chestAnimator;
 
-    //-----METHODS-----
+    public GameObject highlight;
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Initialise () {
-        chestAnimator = GetComponent<Animator>();
-    }
 
     //-----INTERFACES-----
 
     /// <summary>
-    /// 
+    /// Setup the component references
     /// </summary>
-    public void TriggerInteraction () {
+    public void Initialise() {
+        chestAnimator = GetComponent<Animator>();
+    }
+
+    /// <summary>
+    /// Highlight the object
+    /// </summary>
+    public void HighlightObject() {
+        highlight.SetActive(true);
+    }
+
+    /// <summary>
+    /// Unhighlight the object
+    /// </summary>
+    public void UnhighlightObject() {
+        highlight.SetActive(false);
+    }
+
+    /// <summary>
+    /// Trigger the quest interaction with the chest
+    /// </summary>
+    public void TriggerInteraction() {
         chestAnimator.SetTrigger("Open");
 
-        QuestObjective questObject = GetComponent<QuestObjective>();
-        if (questObject != null) {
-            questObject.TriggerNextQuest().StartQuest();
+        QuestObjective questObjectiveScript = GetComponent<QuestObjective>();
+        if (questObjectiveScript != null) {
+            QuestComponent questComp = questObjectiveScript.TriggerNextQuest();
         }
     }
 

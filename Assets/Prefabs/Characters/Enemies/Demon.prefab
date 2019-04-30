@@ -141,9 +141,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d56c65cd2fbc8e44b852289888b16e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionRing: {fileID: 1591794940}
+  selectionHightlight: {fileID: 1591794938}
   abilityIDs:
   - Bash
+  encounterInstance: {fileID: 0}
 --- !u!114 &248382864649816789
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -157,9 +158,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterName: Demon
-  maxHealth: 30
+  maxHealth: 40
   maxMana: 10
-  maxActionPoints: 5
+  actionAvailable: 1
   characterController: {fileID: 0}
 --- !u!114 &4784588409175164878
 MonoBehaviour:
@@ -175,6 +176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speedInFeet: 25
   lockedDown: 0
+  infinityMovement: 0
 --- !u!114 &7276529761504186757
 MonoBehaviour:
   m_ObjectHideFlags: 0

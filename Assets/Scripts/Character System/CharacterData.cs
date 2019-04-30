@@ -7,49 +7,42 @@ public class CharacterData : MonoBehaviour {
 
     //-----VARIABLES-----  
 
-    //Characters name
     public string characterName;
 
-    //Characters health
     public int maxHealth;
     private int health;
 
-    //Characters mana
     public int maxMana;
     private int mana;
 
-    //Characters action points
-    public int maxActionPoints;
-    private int actionPoints;
+    public bool actionAvailable = true;
 
-    //Characters experience
-    private int level = 0;
-    public int Level { get => level; }
-    private int experience = 0;
-    public int Experience { get => experience; }
+    public int level = 0;
+    public int experience = 0;
 
-    [HideInInspector]
-    public CharacterController characterController;
-    public CharacterController CharacterController { set => characterController = value; }
+    [HideInInspector] public CharacterController characterController;
 
     //-----METHODS-----
 
-    //Setup Method
+    /// <summary>
+    /// Setup the health and mana values
+    /// </summary>
     public void Initialise () {
         health = maxHealth;
         mana = maxMana;
-        actionPoints = maxActionPoints;
     }
 
-    //Return the current amount of the specified resource
+    /// <summary>
+    /// Return the current amount of the specified resource
+    /// </summary>
+    /// <param name="type">The resource type to get</param>
+    /// <returns>The amount of that resource</returns>
     public int GetResourceOfType (ResourceType type) {
         switch (type) {
             case ResourceType.HEALTH:
                 return health;
             case ResourceType.MANA:
                 return mana;
-            case ResourceType.ACTIONPOINTS:
-                return actionPoints;
             case ResourceType.EXPERIENCE:
                 return experience;
             default:
@@ -57,8 +50,11 @@ public class CharacterData : MonoBehaviour {
                 return 0;
         }
     }
-    
-    //Reduce the specified resource by the specified amount in the cost
+
+    /// <summary>
+    /// Apply a change to the specified resource by the amount in the change
+    /// </summary>
+    /// <param name="change">The resource to change and amount to change it by</param>
     public void ApplyChangeToData (StatChange change) {
         switch (change.Resource) {
             case ResourceType.HEALTH:
@@ -69,9 +65,6 @@ public class CharacterData : MonoBehaviour {
                 break;
             case ResourceType.MANA:
                 mana = (int) Mathf.Clamp(mana + change.Amount, 0, maxMana);                
-                break;
-            case ResourceType.ACTIONPOINTS:
-                actionPoints = (int) Mathf.Clamp(actionPoints + change.Amount, 0, maxActionPoints);                
                 break;
             case ResourceType.EXPERIENCE:
                 experience += change.Amount;
@@ -89,11 +82,18 @@ public class CharacterData : MonoBehaviour {
         UIManager.instance.UpdateHeroStatusBar();
     }
 
-    //Destroy the character object when their health reaches zero
+    /// <summary>
+    /// Trigger the characters death if their at 0 health
+    /// </summary>
     public void TriggerCharacterDeath () {
         characterController.Die();
     } 
 
+    /// <summary>
+    /// Convert the  level into pure experience
+    /// </summary>
+    /// <param name="level">The level to convert</param>
+    /// <returns>The experience point equivalent</returns>
     public int LevelToExperience (int level) {
         return Mathf.RoundToInt(Mathf.Pow(level, 1.5f) * 100);
     }
@@ -102,14 +102,14 @@ public class CharacterData : MonoBehaviour {
 
 //-----RELATED DATA STRUCTURES-----
 
-public enum ResourceType {HEALTH, MANA, ACTIONPOINTS, EXPERIENCE};
+public enum ResourceType {HEALTH, MANA, EXPERIENCE};
 
 public struct StatChange {
     public ResourceType Resource;
     public int Amount;
 
-    public StatChange (ResourceType _resource, int _amount) {
-        Resource = _resource;
-        Amount = _amount;
+    public StatChange (ResourceType resource, int amount) {
+        Resource = resource;
+        Amount = amount;
     }
 }

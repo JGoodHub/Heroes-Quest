@@ -6,36 +6,37 @@ public class Vertex {
 
     //-----VARIABLES-----
 
-    private Vector2Int graphCoordinates;
-    public Vector2Int GraphCoordinates {
-        get { return graphCoordinates; }
-    }
-
-    private Vector3 worldPosition;
-    public Vector3 WorldPosition {
-        get { return worldPosition; }
-    }
+    public Vector2Int graphCoordinates;
+    public Vector3 worldPosition;
+    public HashSet<Edge> incidentEdges = new HashSet<Edge>();
     
-    private HashSet<Edge> incidentEdges = new HashSet<Edge>();
-    public HashSet<Edge> IncidentEdges {
-        get {return this.incidentEdges; }
-    }
-
     public Graph parentGraph;
-
     public bool blocked;
 
     //-----METHODS-----
 
-    public Vertex (Vector2Int _coordinates, Graph _parentGraph) {
-        this.graphCoordinates = _coordinates;
-        this.parentGraph = _parentGraph;
+    /// <summary>
+    /// Set up the coordinates and graph reference of the vertex
+    /// </summary>
+    /// <param name="graphCoordinates">The coordinates of the vertex</param>
+    /// <param name="parentGraph">The graph the vertex belongs to</param>
+    public Vertex (Vector2Int graphCoordinates, Graph parentGraph) {
+        this.graphCoordinates = graphCoordinates;
+        this.parentGraph = parentGraph;
     }
 
-    public void SetWorldPosition (Vector3 _worldPosition) {
-        this.worldPosition = _worldPosition;
+    /// <summary>
+    /// Set the position of th vertex in world space
+    /// </summary>
+    /// <param name="worldPosition"></param>
+    public void SetWorldPosition (Vector3 worldPosition) {
+        this.worldPosition = worldPosition;
     }
 
+    /// <summary>
+    /// Get the neighboring vertices of the vertex
+    /// </summary>
+    /// <returns>A set of neighboring vertices</returns>
     public HashSet<Vertex> GetNeighbouringVertices () {
         HashSet<Vertex> neighboringVertices = new HashSet<Vertex>();
         foreach (Edge e in incidentEdges) {
@@ -44,6 +45,10 @@ public class Vertex {
         return neighboringVertices;
     }
 
+    /// <summary>
+    /// Get the vertex as a string
+    /// </summary>
+    /// <returns>The vertex as a string</returns>
     public override string ToString () {
         return "(" + graphCoordinates.x + ", " + graphCoordinates.y + ")";
     }    

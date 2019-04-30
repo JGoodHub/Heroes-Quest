@@ -21,16 +21,20 @@ public class AbilityManager : MonoBehaviour {
 
     public GameObject tileHighlightPrefab;
 
-	[HideInInspector]
-	public bool abilityRunning = false;
+	[HideInInspector] public bool abilityRunning = false;
 
     //-----METHODS-----
 	
+    /// <summary>
+    /// Get all characters positions onto of the vertices to be searched
+    /// </summary>
+    /// <param name="verticesToSearch">Set of vertices to search</param>
+    /// <returns>A set of characters standing onto of the vertices to be searched</returns>
 	public HashSet<CharacterController> GetCharactersOnVertices (HashSet<Vertex> verticesToSearch) {
 		HashSet<CharacterController> charactersWithinRange = new HashSet<CharacterController>();
 		foreach (Vertex v in verticesToSearch) {
 			RaycastHit vRayHit;
-			Ray vCheckRay = new Ray(v.WorldPosition + new Vector3(0, 50, 0), Vector3.down);
+			Ray vCheckRay = new Ray(v.worldPosition + new Vector3(0, 50, 0), Vector3.down);
 			if (Physics.Raycast(vCheckRay, out vRayHit, 100f)) {
 				if (vRayHit.collider.CompareTag("Hero") || vRayHit.collider.CompareTag("Enemy")) {
 					charactersWithinRange.Add(vRayHit.collider.GetComponent<CharacterController>());
@@ -41,21 +45,21 @@ public class AbilityManager : MonoBehaviour {
 		return charactersWithinRange;
 	}
 
-	#region Hero Ability Casting
+    #region Hero Ability Casting
     /// <summary>
-    /// 
+    /// Starts the CastHeroAbilityCoroutine which handles the targeting and casting of a hero's ability
     /// </summary>
-    /// <param name="caster"></param>
-    /// <param name="ability"></param>
-	public void CastHeroAbility (CharacterController caster, Ability ability) {		
+    /// <param name="caster">Character casting the ability</param>
+    /// <param name="ability">Ability instance the character is casting</param>
+    public void CastHeroAbility (CharacterController caster, Ability ability) {		
 		StartCoroutine(CastHeroAbilityCoroutine(caster, ability));
 	}
 
     /// <summary>
-    /// 
+    /// Handles the targeting and casting of a hero's ability
     /// </summary>
-    /// <param name="caster"></param>
-    /// <param name="ability"></param>
+    /// <param name="caster">Character casting the ability</param>
+    /// <param name="ability">Ability instance the character is casting</param>
     /// <returns></returns>
 	IEnumerator CastHeroAbilityCoroutine (CharacterController caster, Ability ability) {
 		if (abilityRunning || caster.MovementController.CurrentlyMoving) {
@@ -65,15 +69,15 @@ public class AbilityManager : MonoBehaviour {
 		}
 				
 		//-----TARGETING-----
-		//Based on the targetting mode setup in the ability, chose a valid target from those available
+		//Based on the targeting mode setup in the ability, chose a valid target from those available
 		CharacterController chosenTarget = null;
 		List<GameObject> tileHighlights = new List<GameObject>();
 		switch (ability.targetingMode.TargetType) {
 			case Ability.TargetType.SINGLE:
-				HashSet<Vertex> verticesInRange = PathManager.instance.GetVerticesInRange(caster.MovementController.GraphObstacle.CurrentVertex, ability.targetingMode.Range, false);
+				HashSet<Vertex> verticesInRange = PathManager.instance.GetVerticesInRange(caster.MovementController.GraphObstacle.currentVertex, ability.targetingMode.Range, false);
 
 				foreach (Vertex v in verticesInRange) {
-					GameObject tileHighlightInstance = Instantiate(tileHighlightPrefab, v.WorldPosition, Quaternion.identity);
+					GameObject tileHighlightInstance = Instantiate(tileHighlightPrefab, v.worldPosition, Quaternion.identity);
 					tileHighlightInstance.transform.SetParent(GameManager.instance.runtimeObjectsPool.transform);
 					tileHighlights.Add(tileHighlightInstance);
 				}
@@ -84,9 +88,9 @@ public class AbilityManager : MonoBehaviour {
 				}
 
 				//Wait for the player to pick their desired target
-				while (chosenTarget == null) {					
-					UIManager.instance.DisableAbilityButtons();
-					UIManager.instance.DisableEndTurnButton();
+				while (chosenTarget == null) {
+                    UIManager.instance.DisableEndTurnButton();
+					UIManager.instance.DisablePlayerControls();
 
 					if (Input.GetMouseButtonDown(0)) {
 						RaycastHit hit = CameraManager.instance.FireRaycastFromMousePosition();
@@ -97,9 +101,8 @@ public class AbilityManager : MonoBehaviour {
 							}
 						}
 					} else if (Input.GetMouseButtonDown(1)) {
-						//Cancel the casting
-						UIManager.instance.EnableAbilityButtons();
-						UIManager.instance.EnableEndTurnButton();
+                        UIManager.instance.EnableEndTurnButton();
+						UIManager.instance.EnablePlayerControls();
 
 						foreach(CharacterController e in charactersInRange) {
 							e.Unhighlight();
@@ -111,16 +114,13 @@ public class AbilityManager : MonoBehaviour {
 						}
 						yield break;
 					}
-					//Wait for the next frame
-					yield return null;
+
+                    yield return null;
 				}
 
 				foreach(CharacterController e in charactersInRange) {
 					e.Unhighlight();
 				}
-			break;
-			case Ability.TargetType.AOE_TARGETED:
-				//TODO				
 			break;
 		}		
 
@@ -128,37 +128,56 @@ public class AbilityManager : MonoBehaviour {
 			Destroy(tileHighlight);
 		}
 
+        caster.CharacterData.actionAvailable = false;
+        UIManager.instance.DisableActionPoint();
+
 		ability.StartAbility(caster, chosenTarget);
 		while (abilityRunning) {
 			yield return null;
 		}
 
+        UIManager.instance.EnableEndTurnButton();
+        UIManager.instance.EnablePlayerControls();
+
         if (chosenTarget.gameObject.CompareTag("Enemy")) {
             EnemyController targetEnemy = chosenTarget.gameObject.GetComponent<EnemyController>();
-            targetEnemy.encounterInstance.encounterActive = true;
-            GameManager.instance.EndPlayersTurn();
-        } else {
-            UIManager.instance.EnableAbilityButtons();
-            UIManager.instance.EnableEndTurnButton();
-        }
-		
-	}
-	#endregion
+            if (targetEnemy.encounterInstance.encounterActive == false) {
+                targetEnemy.encounterInstance.encounterActive = true;
+                GameManager.instance.EndPlayersTurn();
+            }    
+        }        
 
-	#region Enemy Ability Casting
-	//Cast the enemies ability, the target is pre-determined so it's passed as a parameter
-	public void CastEnemyAbility (CharacterController caster, CharacterController targetHero, Ability ability) {
+    }
+    #endregion
+
+    #region Enemy Ability Casting
+    /// <summary>
+    /// Starts the CastEnemyAbilityCoroutine which casts the enemies ability, the target is pre-determined so it's passed as a parameter
+    /// </summary>
+    /// <param name="caster">The enemy casting the ability</param>
+    /// <param name="targetHero">The determined target hero</param>
+    /// <param name="ability">The ability instance being cast</param>
+    public void CastEnemyAbility (CharacterController caster, CharacterController targetHero, Ability ability) {
 		StartCoroutine(CastEnemyAbilityCoroutine(caster, targetHero, ability));
 	}
 
-	//Coroutine for the enemy ability casting
-	IEnumerator CastEnemyAbilityCoroutine (CharacterController caster, CharacterController targetHero, Ability ability) {
+    /// <summary>
+    /// Cast the enemies ability, the target is pre-determined so it's passed as a parameter
+    /// </summary>
+    /// <param name="caster"></param>
+    /// <param name="targetHero"></param>
+    /// <param name="ability"></param>
+    /// <returns></returns>
+    IEnumerator CastEnemyAbilityCoroutine (CharacterController caster, CharacterController targetHero, Ability ability) {
 		abilityRunning = true;
 
-		HashSet<Vertex> verticesInRange = PathManager.instance.GetVerticesInRange(caster.MovementController.GraphObstacle.CurrentVertex, ability.targetingMode.Range, false);
+		HashSet<Vertex> verticesInRange = PathManager.instance.GetVerticesInRange(caster.MovementController.GraphObstacle.currentVertex, ability.targetingMode.Range, false);
 		HashSet<CharacterController> charactersInRange = GetCharactersOnVertices(verticesInRange);
+
 		if (charactersInRange.Contains(targetHero)) {
-			ability.StartAbility(caster, targetHero);		
+            Debug.Log("Character in range");
+            caster.CharacterData.actionAvailable = false;
+			ability.StartAbility(caster, targetHero);
 			while (abilityRunning) {
 				yield return null;
 			}
@@ -170,18 +189,31 @@ public class AbilityManager : MonoBehaviour {
 	#endregion
 
     /// <summary>
-    /// 
+    /// Start a coroutine located in another script
     /// </summary>
-    /// <param name="coroutine"></param>
-	public void StartExternalCoroutine (IEnumerator coroutine) {
+    /// <param name="coroutine">The coroutine to run</param>
+	public void StartRemoteCoroutine (IEnumerator coroutine) {
 		StartCoroutine(coroutine);
 	}
 
-	//-----GIZMOS-----
+    /// <summary>
+    /// Instantiates an object into the scene from another script
+    /// </summary>
+    /// <param name="prefab">The object to instantiate</param>
+    /// <param name="position">The position of the object</param>
+    /// <param name="rotation">The rotation of the object</param>
+    /// <returns></returns>
+    public static GameObject ExternalInstantiation (GameObject prefab, Vector3 position, Quaternion rotation) {
+        return Instantiate(prefab, position, rotation);
+    }
 
-	public bool drawGizmos;
-	void OnDrawGizmos () {
-
-	}
+    /// <summary>
+    /// Destroy an object from another script
+    /// </summary>
+    /// <param name="obj">The game object to destroy</param>
+    /// <param name="delay">The delay before destroy said object</param>
+    public static void ExternalDestroyCall (GameObject obj, float delay) {
+        Destroy(obj, delay);
+    }
 
 }

@@ -56,10 +56,9 @@ MonoBehaviour:
   startNodeIndex: 0
   endNodeIndex: 0
   tileInstanceID: 0
-  drawGizmos: 1
-  drawConnectorNodes: 1
+  drawConnectorNodes: 0
   drawWalkableToggles: 0
-  drawTileDirection: 1
+  drawTileDirection: 0
   drawTileBounds: 0
 --- !u!1001 &9030555217602050154
 PrefabInstance:

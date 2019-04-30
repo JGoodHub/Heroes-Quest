@@ -66,7 +66,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24eb1da4f027ae745b03d945db4985ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionRing: {fileID: 3265192393543410690}
+  selectionHightlight: {fileID: 4553479176158599049}
   abilityIDs: []
 --- !u!114 &605285112543376204
 MonoBehaviour:
@@ -83,7 +83,7 @@ MonoBehaviour:
   characterName: Farmer Joe
   maxHealth: 10
   maxMana: 0
-  maxActionPoints: 3
+  actionAvailable: 1
   characterController: {fileID: 0}
 --- !u!114 &458525550158835158
 MonoBehaviour:
@@ -97,8 +97,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 585615cbd214dac4e8811879ce8d4bdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speedInFeet: 0
+  speedInFeet: 30
+  hopingHeight: 6
   lockedDown: 1
+  infinityMovement: 1
+  characterController: {fileID: 5297129093575621157}
+  graphObstacle: {fileID: 5065892979553107837}
 --- !u!114 &5065892979553107837
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,7 +129,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   questTriggers:
   - sourceQuestName: Meet the Towns Folk
-    triggerQuestName: Find Joes Lost Treasure
+    triggerQuestName: Find the Lost Treasure
   handInQuestNames:
   - Warn Famer Joe
   marker: {fileID: 4423402990238519083}
@@ -157,7 +161,8 @@ Transform:
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 100, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 4388898704926449283}
   m_Father: {fileID: 3740077621420574193}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1137,3 +1142,86 @@ Transform:
   m_Father: {fileID: 9019871179587899967}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &4388898704926835715
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 4423402990238519080}
+    m_Modifications:
+    - target: {fileID: 100000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_Name
+      value: Marker
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -92.429
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2300002, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b9d86214ee1226d4d8c600b75df40d39, type: 2}
+    - target: {fileID: 2300000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: b9d86214ee1226d4d8c600b75df40d39, type: 2}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6a10d3b741b33454092f3c5345e1c46d, type: 3}
+--- !u!4 &4388898704926449283 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 6a10d3b741b33454092f3c5345e1c46d,
+    type: 3}
+  m_PrefabInstance: {fileID: 4388898704926835715}
+  m_PrefabAsset: {fileID: 0}
