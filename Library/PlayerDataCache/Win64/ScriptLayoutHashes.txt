@@ -1,6 +1,6 @@
 Win64
 PlayerPath?
-D:/Heroes Quest/Build/Heroes Quest.exe
+D:/Heroes Quest/Build/World Builder Build/Heroes Quest.exe
 SceneListBegin?
 Assets/Scenes/DemoScene.unity
 SceneListEnd?

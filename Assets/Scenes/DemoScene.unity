@@ -485,8 +485,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sunPivot: {fileID: 527103405}
-  dayLengthInMinutes: 25
-  pauseCycle: 1
+  dayLengthInMinutes: 10
+  pauseCycle: 0
   manualPositionControl: 1.35
 --- !u!1 &89459928
 GameObject:
@@ -2879,7 +2879,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &597661806
 Transform:
   m_ObjectHideFlags: 0
@@ -4182,7 +4182,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &835795523
 Transform:
   m_ObjectHideFlags: 0
@@ -5625,7 +5625,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1256637491
 Transform:
   m_ObjectHideFlags: 0
@@ -7565,11 +7565,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 248382864649816789, guid: 9d56e776733dab249942314ff05f1b48,
-        type: 3}
-      propertyPath: maxHealth
-      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9d56e776733dab249942314ff05f1b48, type: 3}
@@ -10404,11 +10399,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 248382864649816789, guid: 9d56e776733dab249942314ff05f1b48,
-        type: 3}
-      propertyPath: maxHealth
-      value: 20
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9d56e776733dab249942314ff05f1b48, type: 3}
 --- !u!4 &2146020681 stripped
@@ -10489,11 +10479,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 248382864649816789, guid: 9d56e776733dab249942314ff05f1b48,
-        type: 3}
-      propertyPath: maxHealth
-      value: 20
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9d56e776733dab249942314ff05f1b48, type: 3}
